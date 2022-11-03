@@ -25,8 +25,8 @@
     <content url="file://$MODULE_DIR$/../../../TeamCode/src/testDebug" />
     <orderEntry type="jdk" jdkName="Android API 29 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="FtcRobotController-8.0.TeamCode.main" scope="TEST" />
-    <orderEntry type="module" module-name="FtcRobotController-8.0.FtcRobotController.main" scope="TEST" />
+    <orderEntry type="module" module-name="PowerPlay-22-23.TeamCode.main" scope="TEST" />
+    <orderEntry type="module" module-name="PowerPlay-22-23.FtcRobotController.main" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.threeten:threetenbp:1.5.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.checkerframework:checker-qual:2.5.8" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.annotation:annotation:1.1.0" level="project" />
@@ -68,5 +68,5 @@
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.firstinspires.ftc:gameAssets-PowerPlay:1.0.0@aar" level="project" />
   </component>
-  <component name="TestModuleProperties" production-module="FtcRobotController-8.0.TeamCode.main" />
+  <component name="TestModuleProperties" production-module="PowerPlay-22-23.TeamCode.main" />
 </module>

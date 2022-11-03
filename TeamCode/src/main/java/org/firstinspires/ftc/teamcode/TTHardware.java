@@ -1,4 +1,4 @@
-/* Copyright (c) 2022 FIRST. All rights reserved.
+/* Copyright (c) 2017 FIRST. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -29,82 +29,92 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
- * This file works in conjunction with the External Hardware Class sample called: ConceptExternalHardwareClass.java
- * Please read the explanations in that Sample about how to use this class definition.
+ * This is NOT an opmode.
  *
- * This file defines a Java Class that performs all the setup and configuration for a sample robot's hardware (motors and sensors).
- * It assumes three motors (left_drive, right_drive and arm) and two servos (left_hand and right_hand)
+ * This class can be used to define all the specific hardware for a single robot.
+ * In this case that robot is a Pushbot.
+ * See PushbotTeleopTank_Iterative and others classes starting with "Pushbot" for usage examples.
  *
- * This one file/class can be used by ALL of your OpModes without having to cut & paste the code each time.
+ * This hardware class assumes the following device names have been configured on the robot:
+ * Note:  All names are lower case and some have single spaces between words.
  *
- * Where possible, the actual hardware objects are "abstracted" (or hidden) so the OpMode code just makes calls into the class,
- * rather than accessing the internal hardware directly. This is why the objects are declared "private".
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with *exactly the same name*.
- *
- * Or.. In OnBot Java, add a new file named RobotHardware.java, drawing from this Sample; select Not an OpMode.
- * Also add a new OpMode, drawing from the Sample ConceptExternalHardwareClass.java; select TeleOp.
- *
+ * Motor channel:  Left  drive motor:        "left_drive"
+ * Motor channel:  Right drive motor:        "right_drive"
+ * Motor channel:  Manipulator drive motor:  "left_arm"
+ * Servo channel:  Servo to open left claw:  "left_hand"
+ * Servo channel:  Servo to open right claw: "right_hand"
  */
-
-public class TTHardware {
-
-    /* Declare OpMode members. */
-    private LinearOpMode myOpMode = null;   // gain access to methods in the calling OpMode.
-
-    // Define Motor and Servo objects  (Make them private so they can't be accessed externally)
-    public DcMotor leftDrive   = null;
-    public DcMotor rightDrive  = null;
-    public DcMotor leftForwardDrive = null;
-    public DcMotor   rightForwardDrive = null;
+public class TTHardware
+{
+    /* Public OpMode members. */
+    public DcMotor  leftDrive   = null;
+    public DcMotor  rightDrive  = null;
+    public DcMotor  leftForwardDrive    = null;
+    public DcMotor  rightForwardDrive    = null;
+    public Servo cameraServo = null;
 
 
-    // Define Drive constants.  Make them public so they CAN be used by the calling OpMode
+    /* local OpMode members. */
+    HardwareMap hwMap           =  null;
+    private ElapsedTime period  = new ElapsedTime();
 
+    /* Constructor */
+    public TTHardware(){
 
-    // Define a constructor that allows the OpMode to pass a reference to itself.
-    public TTHardware (LinearOpMode opmode) {
-        myOpMode = opmode;
     }
 
-    /**
-     * Initialize all the robot's hardware.
-     * This method must be called ONCE when the OpMode is initialized.
-     *
-     * All of the hardware devices are accessed via the hardware map, and initialized.
-     */
-    public void init()    {
-        // Define and Initialize Motors (note: need to use reference to actual OpMode).
-        leftDrive  = myOpMode.hardwareMap.get(DcMotor.class, "leftDrive");
-        rightDrive = myOpMode.hardwareMap.get(DcMotor.class, "rightDrive");
-        rightForwardDrive  = myOpMode.hardwareMap.get(DcMotor.class, "rightForwardDrive");
-        leftForwardDrive   = myOpMode.hardwareMap.get(DcMotor.class, "leftForwardDrive");
+    /* Initialize standard Hardware interfaces */
+    public void init(HardwareMap ahwMap) {
+        // Save reference to Hardware map
+        hwMap = ahwMap;
 
-        // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
-        // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
-//        // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-//        leftDrive.setDirection(DcMotor.Direction.FORWARD);
-//        rightDrive.setDirection(DcMotor.Direction.REVERSE); // Gear reverses direction
-//        rightForwardDrive.setDirection(DcMotorSimple.Direction.REVERSE); // Gear reverses direction
-//        leftForwardDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        // Define and Initialize Motors
+        leftDrive  = hwMap.get(DcMotor.class, "left_drive");
+        rightDrive = hwMap.get(DcMotor.class, "right_drive");
+        leftForwardDrive    = hwMap.get(DcMotor.class, "left_forward_drive");
+        rightForwardDrive = hwMap.get(DcMotor.class, "right_forward_drive");
+        cameraServo = hwMap.get(Servo.class, "cameraServo");
 
-        // If there are encoders connected, switch to RUN_USING_ENCODER mode for greater accuracy
-        // leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        // rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
+        leftDrive.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
+        rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftForwardDrive.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightForwardDrive.setDirection(DcMotor.Direction.REVERSE);
+
+
+        // Set to FORWARD if using AndyMark motors
+
+        // Set all motors to zero power
+        leftDrive.setPower(0);
+        rightDrive.setPower(0);
+        leftForwardDrive.setPower(0);
+        rightForwardDrive.setPower(0);
+
+
+
+
+        // Set all motors to run without encoders.
+        // May want to use RUN_USING_ENCODERS if encoders are installed.
+        leftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftForwardDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightForwardDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
+
 
         // Define and initialize ALL installed servos.
 
-
-        myOpMode.telemetry.addData(">", "Hardware Initialized");
-        myOpMode.telemetry.update();
     }
-
-
 }
