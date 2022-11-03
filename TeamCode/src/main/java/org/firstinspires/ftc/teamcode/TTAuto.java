@@ -29,6 +29,11 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -36,11 +41,22 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This file illustrates the concept of driving a path based on Gyro heading and encoder counts.
@@ -107,11 +123,121 @@ public class TTAuto extends LinearOpMode {
 
     BNO055IMU imu;
     Orientation angles;
+
+    private static final String VUFORIA_KEY =
+            "AeWr4R//////AAABmbYsM7cHZkA+sRMzs/bFu44j3cYkmMaU6H+xbpPJQ9SynROk2nudJ0sVbgyn7Gc+hGMZ8rFyx0+8iSoQ8O1LZ5+V+4OcX1sL9z1puLugUplscZg7Q53zbPd3BnkON+tt6fFC0VNDNwUEACrMk+TM9szoroXvoJ5PYvywBFuVVq559PhuXwiobyzmMQI7Pb+gXlQj5EmvKn6etHHmWka2xLh1yq85NBuAFaVnlumgvaE+XQywedFTfZVGr6bI0iAvJLci37969ClMcWj1gPRHMq13paRiNoRfRm8HtkJgzP8WTPQIGeNxYSCV2qnppIACTLkxet8jIH6+evJ579rOhvxYxxd0ot7eDAtdfYQqqCPh";
+
+    // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
+    // We will define some constants and conversions here
+    private static final float mmPerInch        = 25.4f;
+    private static final float mmTargetHeight   = 6 * mmPerInch;          // the height of the center of the target image above the floor
+    private static final float halfField        = 72 * mmPerInch;
+    private static final float halfTile         = 12 * mmPerInch;
+    private static final float oneAndHalfTile   = 36 * mmPerInch;
+
+    // Class Members
+    private OpenGLMatrix lastLocation   = null;
+    private VuforiaLocalizer vuforia    = null;
+    private VuforiaTrackables targets   = null ;
+    private WebcamName webcamName       = null;
+
+    private boolean targetVisible       = false;
+
     @Override
     public void runOpMode() {
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+
+        webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
+
+
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+
+        // VuforiaLocalizer.Parameters camParameters = new VuforiaLocalizer.Parameters();
+        parameters.vuforiaLicenseKey = VUFORIA_KEY;
+
+        // We also indicate which camera we wish to use.
+        parameters.cameraName = webcamName;
+
+        // Turn off Extended tracking.  Set this true if you want Vuforia to track beyond the target.
+        parameters.useExtendedTracking = false;
+
+        //  Instantiate the Vuforia engine
+        vuforia = ClassFactory.getInstance().createVuforia(parameters);
+
+        // Load the data sets for the trackable objects. These particular data
+        // sets are stored in the 'assets' part of our application.
+        targets = this.vuforia.loadTrackablesFromAsset("PowerPlay");
+
+        // For convenience, gather together all the trackable objects in one easily-iterable collection */
+        List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
+        allTrackables.addAll(targets);
+
+
+
+        // Name and locate each trackable object
+
+
+
+
+        final float CAMERA_FORWARD_DISPLACEMENT  = 0.0f * mmPerInch;   // eg: Enter the forward distance from the center of the robot to the camera lens
+        final float CAMERA_VERTICAL_DISPLACEMENT = 6.0f * mmPerInch;   // eg: Camera is 6 Inches above ground
+        final float CAMERA_LEFT_DISPLACEMENT     = 0.0f * mmPerInch;   // eg: Enter the left distance from the center of the robot to the camera lens
+
+        OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
+                .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 0));
+
+        /**  Let all the trackable listeners know where the camera is.  */
+        for (VuforiaTrackable trackable : allTrackables) {
+            ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(parameters.cameraName, cameraLocationOnRobot);
+        }
+
+
+        targets.activate();
+        while (!isStopRequested()) {
+
+            // check all the trackable targets to see which one (if any) is visible.
+            targetVisible = false;
+            for (VuforiaTrackable trackable : allTrackables) {
+                if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                    telemetry.addData("Visible Target", trackable.getName());
+                    targetVisible = true;
+
+                    // getUpdatedRobotLocation() will return null if no new information is available since
+                    // the last time that call was made, or if the trackable is not currently visible.
+                    OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
+                    if (robotLocationTransform != null) {
+                        lastLocation = robotLocationTransform;
+                    }
+                    break;
+                }
+            }
+
+            // Provide feedback as to where the robot is located (if we know).
+            if (targetVisible) {
+                // express position (translation) of robot in inches.
+                VectorF translation = lastLocation.getTranslation();
+                telemetry.addData("Pos (inches)", "{X, Y, Z} = %.1f, %.1f, %.1f",
+                        translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
+
+                // express the rotation of the robot in degrees.
+                Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
+                telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+            }
+            else {
+                telemetry.addData("Visible Target", "none");
+            }
+            telemetry.update();
+        }
+
+        // Disable Tracking when we are done;
+        targets.deactivate();
+
+
+
+        BNO055IMU.Parameters camParameters = new BNO055IMU.Parameters();
         imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(parameters);
+        imu.initialize(camParameters);
 
 
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -160,7 +286,12 @@ public class TTAuto extends LinearOpMode {
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
         // Put a hold after each turn
 
+    gyroDrive(0.5, 1, 0);
 
+        identifyTarget(0, "Red Audience Wall",   -halfField,  -oneAndHalfTile, mmTargetHeight, 90, 0,  90);
+        identifyTarget(1, "Red Rear Wall",        halfField,  -oneAndHalfTile, mmTargetHeight, 90, 0, -90);
+        identifyTarget(2, "Blue Audience Wall",  -halfField,   oneAndHalfTile, mmTargetHeight, 90, 0,  90);
+        identifyTarget(3, "Blue Rear Wall",       halfField,   oneAndHalfTile, mmTargetHeight, 90, 0, -90);
 
 
     }
@@ -383,5 +514,11 @@ public class TTAuto extends LinearOpMode {
         return Range.clip(error * PCoeff, -1, 1);
 
 
+    }
+    void    identifyTarget(int targetIndex, String targetName, float dx, float dy, float dz, float rx, float ry, float rz) {
+        VuforiaTrackable aTarget = targets.get(targetIndex);
+        aTarget.setName(targetName);
+        aTarget.setLocation(OpenGLMatrix.translation(dx, dy, dz)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, rx, ry, rz)));
     }
 }

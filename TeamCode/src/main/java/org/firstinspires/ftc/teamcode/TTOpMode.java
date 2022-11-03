@@ -75,6 +75,8 @@ public class TTOpMode extends LinearOpMode {
     public DcMotor leftForwardDrive = null;
     public DcMotor   rightForwardDrive = null;
 
+    TTHardware robot = new TTHardware();
+
     // Create a RobotHardware object to be used to access robot hardware.
     // Prefix any hardware functions with "robot." to access this class.
 
@@ -107,12 +109,31 @@ public class TTOpMode extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
+            robot.init();
+
             // Mecanum drive is controlled with three axes: drive (front-and-back),
             // strafe (left-and-right), and twist (rotating the whole chassis).
             double drive = -gamepad1.left_stick_x;
             double strafe = gamepad1.left_stick_y;
             double twist = -gamepad1.right_stick_x;
+            double cameraServo = gamepad1.right_trigger;
 
+            double cameraPower;
+            double negCameraPower;
+
+
+
+
+            if(gamepad2.left_trigger > 0) {
+                cameraPower = negCameraPower * -1;
+            }
+
+
+            if(gamepad2.right_trigger > 0) {
+                cameraPower = cameraServo;
+            }
+
+            robot.cameraServo.setPosition();
             /*
              * If we had a gyro and wanted to do field-oriented control, here
              * is where we would implement it.
@@ -164,6 +185,7 @@ public class TTOpMode extends LinearOpMode {
             rightForwardDrive.setPower(speeds[1]);
             leftDrive.setPower(-speeds[2]);
             rightDrive.setPower(speeds[3]);
+
 
         }
 
