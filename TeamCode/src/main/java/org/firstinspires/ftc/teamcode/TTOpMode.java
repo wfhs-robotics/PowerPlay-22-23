@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcontroller.external.samples.RobotHardware;
@@ -74,7 +75,8 @@ public class TTOpMode extends LinearOpMode {
     public DcMotor rightDrive  = null;
     public DcMotor leftForwardDrive = null;
     public DcMotor   rightForwardDrive = null;
-
+    private boolean sean = false;
+    public HardwareMap tthw = null;
     TTHardware robot = new TTHardware();
 
     // Create a RobotHardware object to be used to access robot hardware.
@@ -109,7 +111,7 @@ public class TTOpMode extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            robot.init();
+            robot.init(tthw);
 
             // Mecanum drive is controlled with three axes: drive (front-and-back),
             // strafe (left-and-right), and twist (rotating the whole chassis).
@@ -124,16 +126,16 @@ public class TTOpMode extends LinearOpMode {
 
 
 
-            if(gamepad2.left_trigger > 0) {
+            /*if(gamepad2.left_trigger > 0) {
                 cameraPower = negCameraPower * -1;
-            }
+            }*/
 
 
             if(gamepad2.right_trigger > 0) {
                 cameraPower = cameraServo;
             }
 
-            robot.cameraServo.setPosition();
+            robot.cameraServo.setPosition(0.0);
             /*
              * If we had a gyro and wanted to do field-oriented control, here
              * is where we would implement it.
@@ -162,6 +164,7 @@ public class TTOpMode extends LinearOpMode {
                     (drive - strafe - twist),
                     (drive - strafe + twist),
                     (drive + strafe - twist)
+
             };
 
             // Because we are adding vectors and motors only take values between
@@ -186,6 +189,35 @@ public class TTOpMode extends LinearOpMode {
             leftDrive.setPower(-speeds[2]);
             rightDrive.setPower(speeds[3]);
 
+            double leftPower = Range.clip(drive + twist, -1.0, 1.0) ;
+            double rightPower = Range.clip(drive - twist, -1.0, 1.0) ;
+            double rightForwardPower = Range.clip(drive - twist, -1.0, 1.0) ;
+            double leftForwardPower = Range.clip(drive + twist, -1.0, 1.0) ;
+            double SAup = gamepad2.right_trigger;
+            double SAdown = gamepad2.left_trigger;
+            boolean clawControl = gamepad2.dpad_left;
+
+            if(gamepad1.dpad_down)
+            {
+                sean = true;
+            }
+            if(gamepad1.dpad_up)
+            {
+                sean = false;
+            }
+
+            if(sean) {
+                leftDrive.setPower(leftDrive.getPower() * 0.2);
+                rightDrive.setPower(rightDrive.getPower() * 0.2);
+                leftForwardDrive.setPower(leftForwardDrive.getPower() * 0.2);
+                rightForwardDrive.setPower(rightForwardDrive.getPower() * 0.2);
+                if(gamepad1.right_stick_x > 0) {
+                    leftPower = Range.clip(drive + twist, -0.5, 0.5) ;
+                    rightPower = Range.clip(drive - twist, -0.5, 0.5) ;
+                    rightForwardPower = Range.clip(drive - twist, -0.5, 0.5) ;
+                    leftForwardPower = Range.clip(drive + twist, -0.5, 0.5) ;
+                }
+            }
 
         }
 
