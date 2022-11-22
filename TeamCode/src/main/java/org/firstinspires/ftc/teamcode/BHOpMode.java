@@ -66,8 +66,8 @@ import com.qualcomm.robotcore.util.Range;
  *  Also add another new file named RobotHardware.java, drawing from the Sample with that name; select Not an OpMode.
  */
 
-@TeleOp(name="RHOpMode", group="Robot")
-public class RHOpMode extends LinearOpMode {
+@TeleOp(name="OpMode", group="Robot")
+public class BHOpMode extends LinearOpMode {
     private boolean sean = false;
     public HardwareMap tthw = null;
     TTHardware robot = new TTHardware();
@@ -177,9 +177,9 @@ public class RHOpMode extends LinearOpMode {
             }
 
             // apply the calculated values to the motors.
-            robot.leftForwardDrive.setPower(speeds[0]);
+            robot.leftForwardDrive.setPower(-speeds[0]);
             robot.rightForwardDrive.setPower(speeds[1]);
-            robot.leftDrive.setPower(speeds[2]);
+            robot.leftDrive.setPower(-speeds[2]);
             robot.rightDrive.setPower(speeds[3]);
 
             double leftPower = Range.clip(drive + twist, -1.0, 1.0) ;
