@@ -71,10 +71,6 @@ import org.firstinspires.ftc.robotcontroller.external.samples.RobotHardware;
 
 @TeleOp(name="OpMode", group="Robot")
 public class TTOpMode extends LinearOpMode {
-    public DcMotor leftDrive   = null;
-    public DcMotor rightDrive  = null;
-    public DcMotor leftForwardDrive = null;
-    public DcMotor   rightForwardDrive = null;
     private boolean sean = false;
     public HardwareMap tthw = null;
     TTHardware robot = new TTHardware();
@@ -85,18 +81,15 @@ public class TTOpMode extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        leftDrive  = hardwareMap.get(DcMotor.class, "leftDrive");
-        rightDrive = hardwareMap.get(DcMotor.class, "rightDrive");
-        rightForwardDrive  = hardwareMap.get(DcMotor.class, "rightForwardDrive");
-        leftForwardDrive   = hardwareMap.get(DcMotor.class, "leftForwardDrive");
+
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightForwardDrive.setDirection(DcMotorSimple.Direction.FORWARD);
-        leftForwardDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        robot.leftDrive.setDirection(DcMotor.Direction.REVERSE);
+        robot.rightDrive.setDirection(DcMotor.Direction.FORWARD);
+        robot.rightForwardDrive.setDirection(DcMotorSimple.Direction.FORWARD);
+        robot.leftForwardDrive.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
         // initialize all the hardware, using the hardware class. See how clean and simple this is?
@@ -118,24 +111,31 @@ public class TTOpMode extends LinearOpMode {
             double drive = -gamepad1.left_stick_x;
             double strafe = gamepad1.left_stick_y;
             double twist = -gamepad1.right_stick_x;
-            double cameraServo = gamepad1.right_trigger;
+            double cameraServo = gamepad2.left_trigger;
+            double slide = -gamepad2.left_stick_y;
+            double pickup = gamepad2.right_trigger;
 
             double cameraPower;
-            double negCameraPower;
+            double pickupPower;
 
 
-
-
-            /*if(gamepad2.left_trigger > 0) {
-                cameraPower = negCameraPower * -1;
-            }*/
 
 
             if(gamepad2.right_trigger > 0) {
+                pickupPower = pickup;
+            }
+            if(gamepad2.left_trigger > 0) {
                 cameraPower = cameraServo;
             }
 
             robot.cameraServo.setPosition(0.0);
+
+            if(gamepad2.left_bumper) {
+                robot.pickup.setPosition(0);
+            }
+            if(gamepad2.right_bumper) {
+                robot.pickup.setPosition(2);
+            }
             /*
              * If we had a gyro and wanted to do field-oriented control, here
              * is where we would implement it.
@@ -184,18 +184,17 @@ public class TTOpMode extends LinearOpMode {
             }
 
             // apply the calculated values to the motors.
-            leftForwardDrive.setPower(-speeds[0]);
-            rightForwardDrive.setPower(speeds[1]);
-            leftDrive.setPower(-speeds[2]);
-            rightDrive.setPower(speeds[3]);
+            robot.leftForwardDrive.setPower(-speeds[0]);
+            robot.rightForwardDrive.setPower(speeds[1]);
+            robot.leftDrive.setPower(-speeds[2]);
+            robot.rightDrive.setPower(speeds[3]);
 
             double leftPower = Range.clip(drive + twist, -1.0, 1.0) ;
             double rightPower = Range.clip(drive - twist, -1.0, 1.0) ;
             double rightForwardPower = Range.clip(drive - twist, -1.0, 1.0) ;
             double leftForwardPower = Range.clip(drive + twist, -1.0, 1.0) ;
-            double SAup = gamepad2.right_trigger;
-            double SAdown = gamepad2.left_trigger;
-            boolean clawControl = gamepad2.dpad_left;
+            double slidePower = Range.clip(slide, -1.0, 1.0);
+
 
             if(gamepad1.dpad_down)
             {
@@ -207,17 +206,24 @@ public class TTOpMode extends LinearOpMode {
             }
 
             if(sean) {
-                leftDrive.setPower(leftDrive.getPower() * 0.2);
-                rightDrive.setPower(rightDrive.getPower() * 0.2);
-                leftForwardDrive.setPower(leftForwardDrive.getPower() * 0.2);
-                rightForwardDrive.setPower(rightForwardDrive.getPower() * 0.2);
+                robot.leftDrive.setPower(robot.leftDrive.getPower() * 0.2);
+                robot.rightDrive.setPower(robot.rightDrive.getPower() * 0.2);
+                robot.leftForwardDrive.setPower(robot.leftForwardDrive.getPower() * 0.2);
+                robot.rightForwardDrive.setPower(robot.rightForwardDrive.getPower() * 0.2);
                 if(gamepad1.right_stick_x > 0) {
                     leftPower = Range.clip(drive + twist, -0.5, 0.5) ;
                     rightPower = Range.clip(drive - twist, -0.5, 0.5) ;
                     rightForwardPower = Range.clip(drive - twist, -0.5, 0.5) ;
                     leftForwardPower = Range.clip(drive + twist, -0.5, 0.5) ;
+
+
                 }
             }
+            robot.leftForwardDrive.setPower(leftPower);
+            robot.rightForwardDrive.setPower(rightPower);
+            robot.leftDrive.setPower(rightForwardPower);
+            robot.rightDrive.setPower(leftForwardPower);
+            robot.slide.setPower(slidePower);
 
         }
 

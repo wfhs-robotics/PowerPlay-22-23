@@ -199,13 +199,13 @@ public class TTAuto extends LinearOpMode {
             // check all the trackable targets to see which one (if any) is visible.
             targetVisible = false;
             for (VuforiaTrackable trackable : allTrackables) {
-                if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
                     telemetry.addData("Visible Target", trackable.getName());
                     targetVisible = true;
 
                     // getUpdatedRobotLocation() will return null if no new information is available since
                     // the last time that call was made, or if the trackable is not currently visible.
-                    OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
+                    OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
                     if (robotLocationTransform != null) {
                         lastLocation = robotLocationTransform;
                     }
@@ -214,85 +214,95 @@ public class TTAuto extends LinearOpMode {
             }
 
             // Provide feedback as to where the robot is located (if we know).
-            if (targetVisible) {
-                // express position (translation) of robot in inches.
+
+
+            // Disable Tracking when we are done;
+            targets.deactivate();
+
+
+            BNO055IMU.Parameters camParameters = new BNO055IMU.Parameters();
+            imu = hardwareMap.get(BNO055IMU.class, "imu");
+            imu.initialize(camParameters);
+
+
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+            double right90 = angles.firstAngle - 90;
+            double left90 = angles.firstAngle + 90;
+            /*
+             * Initialize the standard drive system variables.
+             * The init() method of the hardware class does most of the work here
+             */
+            robot.init(hardwareMap);
+            // Ensure the robot it stationary, then reset the encoders and calibrate the gyro.
+
+            robot.leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.leftForwardDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.rightForwardDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            // Send telemetry message to alert driver that we are calibrating;
+            telemetry.addData(">", "Calibrating Gyro");    //
+            telemetry.update();
+
+
+            // make sure the gyro is calibrated before continuing
+            while (!isStopRequested() && imu.isGyroCalibrated()) {
+                sleep(50);
+                idle();
+            }
+
+            telemetry.addData(">", "Robot Ready.");    //
+            telemetry.update();
+
+
+            // Wait for the game to start (Display Gyro value), and reset gyro before we move..
+            while (!isStarted()) {
+                telemetry.addData(">", "Robot Heading = %f", angles.firstAngle);
+                telemetry.update();
+            }
+
+
+            // Step through each leg of the path,
+            // Note: Reverse movement is obtained by setting a negative distance (not speed)
+            // Put a hold after each turn
+            for (VuforiaTrackable trackable : allTrackables) {
                 VectorF translation = lastLocation.getTranslation();
-                telemetry.addData("Pos (inches)", "{X, Y, Z} = %.1f, %.1f, %.1f",
-                        translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
+                if (targetVisible && translation.get(0) / mmPerInch < 8) {
+                    String pictureType = trackable.getName();
 
-                // express the rotation of the robot in degrees.
-                Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
-                telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+                    if (pictureType == "Red Audience Wall") {
+                        telemetry.addData(">", "Red Audience");
+                        targets.deactivate();
+                    }
+                    if (pictureType == "Red Rear Wall") {
+                        telemetry.addData(">", "Red Rear");
+                        targets.deactivate();
+                    }
+                    if (pictureType == "Blue Audience Wall") {
+                        telemetry.addData(">", "Blue Audience");
+                        targets.deactivate();
+
+                    }
+                    if (pictureType == "Blue Rear Wall") {
+                        telemetry.addData(">", "Blue Rear");
+                        targets.deactivate();
+
+
+                    }
+                    OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
+                    if (robotLocationTransform != null) {
+                        lastLocation = robotLocationTransform;
+                    }
+                }
             }
-            else {
-                telemetry.addData("Visible Target", "none");
-            }
-            telemetry.update();
+
+
         }
-
-        // Disable Tracking when we are done;
-        targets.deactivate();
-
-
-
-        BNO055IMU.Parameters camParameters = new BNO055IMU.Parameters();
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(camParameters);
-
-
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-
-        double right90 = angles.firstAngle - 90;
-        double left90 = angles.firstAngle + 90;
-        /*
-         * Initialize the standard drive system variables.
-         * The init() method of the hardware class does most of the work here
-         */
-        robot.init(hardwareMap);
-        // Ensure the robot it stationary, then reset the encoders and calibrate the gyro.
-
-        robot.leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.leftForwardDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.rightForwardDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        // Send telemetry message to alert driver that we are calibrating;
-        telemetry.addData(">", "Calibrating Gyro");    //
-        telemetry.update();
-
-
-        // make sure the gyro is calibrated before continuing
-        while (!isStopRequested() && imu.isGyroCalibrated()) {
-            sleep(50);
-            idle();
-        }
-
-        telemetry.addData(">", "Robot Ready.");    //
-        telemetry.update();
-
-
-        // Wait for the game to start (Display Gyro value), and reset gyro before we move..
-        while (!isStarted()) {
-            telemetry.addData(">", "Robot Heading = %f", angles.firstAngle);
-            telemetry.update();
-        }
-
-
-        // Step through each leg of the path,
-        // Note: Reverse movement is obtained by setting a negative distance (not speed)
-        // Put a hold after each turn
-
-    gyroDrive(0.5, 1, 0);
-
-        identifyTarget(0, "Red Audience Wall",   -halfField,  -oneAndHalfTile, mmTargetHeight, 90, 0,  90);
-        identifyTarget(1, "Red Rear Wall",        halfField,  -oneAndHalfTile, mmTargetHeight, 90, 0, -90);
-        identifyTarget(2, "Blue Audience Wall",  -halfField,   oneAndHalfTile, mmTargetHeight, 90, 0,  90);
-        identifyTarget(3, "Blue Rear Wall",       halfField,   oneAndHalfTile, mmTargetHeight, 90, 0, -90);
-
 
     }
     public void gyroDrive ( double speed,

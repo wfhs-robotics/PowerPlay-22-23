@@ -62,6 +62,8 @@ public class TTHardware
     public DcMotor  leftForwardDrive    = null;
     public DcMotor  rightForwardDrive    = null;
     public Servo cameraServo = null;
+    public DcMotor slide = null;
+    public Servo pickup = null;
 
 
     /* local OpMode members. */
@@ -79,11 +81,13 @@ public class TTHardware
         hwMap = ahwMap;
 
         // Define and Initialize Motors
-        leftDrive  = hwMap.get(DcMotor.class, "left_drive");
-        rightDrive = hwMap.get(DcMotor.class, "right_drive");
-        leftForwardDrive    = hwMap.get(DcMotor.class, "left_forward_drive");
-        rightForwardDrive = hwMap.get(DcMotor.class, "right_forward_drive");
-        cameraServo = hwMap.get(Servo.class, "cameraServo");
+        leftDrive  = hwMap.get(DcMotor.class, "leftDrive");
+        rightDrive = hwMap.get(DcMotor.class, "rightDrive");
+        leftForwardDrive    = hwMap.get(DcMotor.class, "leftForwardDrive");
+        rightForwardDrive = hwMap.get(DcMotor.class, "rightForwardDrive");
+//        cameraServo = hwMap.get(Servo.class, "cameraServo");
+//        slide = hwMap.get(DcMotor.class, "slide");
+//        pickup = hwMap.get(Servo.class, "pickup");
 
 
 
@@ -100,6 +104,7 @@ public class TTHardware
         rightDrive.setPower(0);
         leftForwardDrive.setPower(0);
         rightForwardDrive.setPower(0);
+//        slide.setPower(0);
 
 
 
@@ -110,6 +115,7 @@ public class TTHardware
         rightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftForwardDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightForwardDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//        slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
 

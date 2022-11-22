@@ -66,7 +66,7 @@ import com.qualcomm.robotcore.util.Range;
  *  Also add another new file named RobotHardware.java, drawing from the Sample with that name; select Not an OpMode.
  */
 
-@TeleOp(name="OpMode", group="Robot")
+@TeleOp(name="RHOpMode", group="Robot")
 public class RHOpMode extends LinearOpMode {
     public DcMotor leftDrive   = null;
     public DcMotor rightDrive  = null;
