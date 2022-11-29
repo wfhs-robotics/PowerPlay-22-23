@@ -35,6 +35,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcontroller.external.samples.RobotHardware;
@@ -71,9 +72,21 @@ import org.firstinspires.ftc.robotcontroller.external.samples.RobotHardware;
 
 @TeleOp(name="OpMode", group="Robot")
 public class TTOpMode extends LinearOpMode {
+    private ElapsedTime     runtime = new ElapsedTime();
     private boolean sean = false;
     public HardwareMap tthw = null;
     TTHardware robot = new TTHardware();
+
+    static final double     COUNTS_PER_MOTOR_REV    = 1120;    // eg: TETRIX Motor Encoder
+    static final double     COUNTS_PER_MOTOR_HEX    = 288;
+    static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
+    static final double     WHEEL_DIAMETER_INCHES   = 6.0 ;     // For figuring circumference
+    static final double     SPOOL_DIAMETER_INCHES   = 2.0;
+    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
+            (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double     COUNTS_PER_INCH_SPOOL         = (COUNTS_PER_MOTOR_HEX * DRIVE_GEAR_REDUCTION) /
+            (SPOOL_DIAMETER_INCHES *3.14);
+
 
     // Create a RobotHardware object to be used to access robot hardware.
     // Prefix any hardware functions with "robot." to access this class.
@@ -114,6 +127,9 @@ public class TTOpMode extends LinearOpMode {
             double cameraServo = gamepad2.left_trigger;
             double slide = -gamepad2.left_stick_y;
             double pickup = gamepad2.right_trigger;
+            boolean topHeight = false;
+            boolean midHeight = false;
+            boolean lowHeight = false;
 
             double cameraPower;
             double pickupPower;
@@ -136,6 +152,29 @@ public class TTOpMode extends LinearOpMode {
             if(gamepad2.right_bumper) {
                 robot.pickup.setPosition(2);
             }
+
+            if(gamepad2.b){
+               topHeight = true;
+            }
+            if(gamepad2.y){
+                midHeight = true;
+            }
+            if(gamepad2.x){
+                lowHeight = true;
+            }
+
+          while(lowHeight) {
+                encoderSpool(1.0, 16, 3);
+          }
+          while(midHeight){
+              encoderSpool(1.0, 28, 5);
+
+          }
+          while(topHeight){
+              encoderSpool(1.0, 40, 8);
+          }
+
+
             /*
              * If we had a gyro and wanted to do field-oriented control, here
              * is where we would implement it.
@@ -228,4 +267,52 @@ public class TTOpMode extends LinearOpMode {
         }
 
     }
+
+    public void encoderSpool(double speed, double spoolInches, double timeoutS) {
+        int spoolTarget;
+
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+
+            // Determine new target position, and pass to motor controller
+            spoolTarget = robot.slide.getCurrentPosition() + (int)(spoolInches * COUNTS_PER_INCH_SPOOL);
+            robot.slide.setTargetPosition(spoolTarget);
+
+
+            // Turn On RUN_TO_POSITION
+            robot.slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+            robot.slide.setPower(Math.abs(speed));
+
+
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+            // its target position, the motion will stop.  This is "safer" in the event that the robot will
+            // always end the motion as soon as possible.
+            // However, if you require that BOTH motors have finished their moves before the robot continues
+            // onto the next step, use (isBusy() || isBusy()) in the loop test.
+            while (opModeIsActive() &&
+                    (runtime.seconds() < timeoutS) &&
+                    (robot.slide.isBusy())) {
+
+                // Display it for the driver.
+            /*    telemetry.addData("Path1",  "Running to %7d :%7d", spoolTarget);
+                telemetry.addData("Path2",  "Running at %7d :%7d",
+                        robot.spool.getCurrentPosition());
+           */
+            }
+
+            // Stop all motion;
+            robot.slide.setPower(0);
+            robot.slide.setPower(0);
+
+            // Turn off RUN_TO_POSITION
+            robot.slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
+            sleep(250);   // optional pause after each move
+        }}
 }

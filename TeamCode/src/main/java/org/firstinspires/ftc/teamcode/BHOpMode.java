@@ -70,7 +70,7 @@ import com.qualcomm.robotcore.util.Range;
 public class BHOpMode extends LinearOpMode {
     private boolean sean = false;
     public HardwareMap tthw = null;
-    TTHardware robot = new TTHardware();
+    BHHardware robot = new BHHardware();
 
     // Create a RobotHardware object to be used to access robot hardware.
     // Prefix any hardware functions with "robot." to access this class.
@@ -78,18 +78,6 @@ public class BHOpMode extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        robot.leftDrive  = hardwareMap.get(DcMotor.class, "leftDrive");
-        robot.rightDrive = hardwareMap.get(DcMotor.class, "rightDrive");
-        robot.rightForwardDrive  = hardwareMap.get(DcMotor.class, "rightForwardDrive");
-        robot.leftForwardDrive   = hardwareMap.get(DcMotor.class, "leftForwardDrive");
-
-        // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
-        // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
-        // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        robot.leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        robot.rightDrive.setDirection(DcMotor.Direction.FORWARD);
-        robot.rightForwardDrive.setDirection(DcMotorSimple.Direction.FORWARD);
-        robot.leftForwardDrive.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
         // initialize all the hardware, using the hardware class. See how clean and simple this is?
@@ -128,7 +116,7 @@ public class BHOpMode extends LinearOpMode {
                 cameraPower = cameraServo;
             }
 
-            robot.cameraServo.setPosition(0.0);
+
             /*
              * If we had a gyro and wanted to do field-oriented control, here
              * is where we would implement it.
