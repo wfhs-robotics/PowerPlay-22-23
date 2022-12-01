@@ -101,22 +101,26 @@ public class RHOpMode extends LinearOpMode {
             double drive = -gamepad1.left_stick_x;
             double strafe = gamepad1.left_stick_y;
             double twist = -gamepad1.right_stick_x;
-            double cameraServo = gamepad1.right_trigger;
-
-            double cameraPower;
-            double negCameraPower;
-
+            double arm = gamepad2.left_stick_y;
+            boolean clawOpen = gamepad2.left_bumper;
+            boolean clawClose = gamepad2.right_bumper;
 
 
-
-            /*if(gamepad2.left_trigger > 0) {
-                cameraPower = negCameraPower * -1;
-            }*/
-
-
-            if(gamepad2.right_trigger > 0) {
-                cameraPower = cameraServo;
+            if(clawOpen) {
+                robot.claw.setPosition(45);
             }
+            if(clawClose) {
+                robot.claw.setPosition(-45);
+            }
+
+
+
+
+
+
+
+
+
 
             robot.cameraServo.setPosition(0.0);
             /*
@@ -176,9 +180,7 @@ public class RHOpMode extends LinearOpMode {
             double rightPower = Range.clip(drive - twist, -1.0, 1.0) ;
             double rightForwardPower = Range.clip(drive - twist, -1.0, 1.0) ;
             double leftForwardPower = Range.clip(drive + twist, -1.0, 1.0) ;
-            double SAup = gamepad2.right_trigger;
-            double SAdown = gamepad2.left_trigger;
-            boolean clawControl = gamepad2.dpad_left;
+            double armPower = Range.clip(arm, -1,1);
 
             if(gamepad1.dpad_down)
             {
@@ -194,11 +196,11 @@ public class RHOpMode extends LinearOpMode {
                 robot.rightDrive.setPower(robot.rightDrive.getPower() * 0.2);
                 robot.leftForwardDrive.setPower(robot.leftForwardDrive.getPower() * 0.2);
                 robot.rightForwardDrive.setPower(robot.rightForwardDrive.getPower() * 0.2);
-                if(gamepad1.right_stick_x > 0) {
-                    leftPower = Range.clip(drive + twist, -0.5, 0.5) ;
-                    rightPower = Range.clip(drive - twist, -0.5, 0.5) ;
-                    rightForwardPower = Range.clip(drive - twist, -0.5, 0.5) ;
-                    leftForwardPower = Range.clip(drive + twist, -0.5, 0.5) ;
+                if (gamepad1.right_stick_x > 0) {
+                    leftPower = Range.clip(drive + twist, -0.5, 0.5);
+                    rightPower = Range.clip(drive - twist, -0.5, 0.5);
+                    rightForwardPower = Range.clip(drive - twist, -0.5, 0.5);
+                    leftForwardPower = Range.clip(drive + twist, -0.5, 0.5);
 
                     robot.leftForwardDrive.setPower(leftPower);
                     robot.rightForwardDrive.setPower(rightPower);
@@ -206,6 +208,8 @@ public class RHOpMode extends LinearOpMode {
                     robot.rightDrive.setPower(leftForwardPower);
                 }
             }
+            robot.arm.setPower(armPower);
+
 
         }
 
