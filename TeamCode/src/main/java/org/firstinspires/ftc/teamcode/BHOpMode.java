@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -65,8 +66,8 @@ import com.qualcomm.robotcore.util.Range;
  *  In OnBot Java, add a new OpMode, drawing from this Sample; select TeleOp.
  *  Also add another new file named RobotHardware.java, drawing from the Sample with that name; select Not an OpMode.
  */
-
-@TeleOp(name="OpMode", group="Robot")
+@Disabled
+@TeleOp(name="BHOpMode", group="Robot")
 public class BHOpMode extends LinearOpMode {
     private boolean sean = false;
     public HardwareMap tthw = null;
@@ -92,29 +93,34 @@ public class BHOpMode extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            robot.init(tthw);
+            robot.init(hardwareMap);
 
             // Mecanum drive is controlled with three axes: drive (front-and-back),
             // strafe (left-and-right), and twist (rotating the whole chassis).
+
             double drive = -gamepad1.left_stick_x;
             double strafe = gamepad1.left_stick_y;
-            double twist = -gamepad1.right_stick_x;
-            double cameraServo = gamepad1.right_trigger;
-
-            double cameraPower;
-            double negCameraPower;
+            double twist = 0;
+            double normalTurn= gamepad1.right_stick_x;
 
 
+            double leftPower;
+            double rightPower;
+            double leftForwardPower;
+            double rightForwardPower;
 
 
-            /*if(gamepad2.left_trigger > 0) {
-                cameraPower = negCameraPower * -1;
-            }*/
 
 
-            if(gamepad2.right_trigger > 0) {
-                cameraPower = cameraServo;
-            }
+
+
+
+
+
+
+
+
+
 
 
             /*
@@ -164,19 +170,31 @@ public class BHOpMode extends LinearOpMode {
                 for (int i = 0; i < speeds.length; i++) speeds[i] /= max;
             }
 
-            // apply the calculated values to the motors.
-            robot.leftForwardDrive.setPower(-speeds[0]);
-            robot.rightForwardDrive.setPower(speeds[1]);
-            robot.leftDrive.setPower(-speeds[2]);
-            robot.rightDrive.setPower(speeds[3]);
 
-            double leftPower = Range.clip(drive + twist, -1.0, 1.0) ;
-            double rightPower = Range.clip(drive - twist, -1.0, 1.0) ;
-            double rightForwardPower = Range.clip(drive - twist, -1.0, 1.0) ;
-            double leftForwardPower = Range.clip(drive + twist, -1.0, 1.0) ;
-            double SAup = gamepad2.right_trigger;
-            double SAdown = gamepad2.left_trigger;
-            boolean clawControl = gamepad2.dpad_left;
+            // apply the calculated values to the motors.
+            if(normalTurn == 0) {
+                telemetry.addData(">", "Strafe");
+                telemetry.update();
+                robot.leftForwardDrive.setPower(speeds[0]);
+                robot.rightForwardDrive.setPower(speeds[1]);
+                robot.leftDrive.setPower(speeds[2]);
+                robot.rightDrive.setPower(speeds[3]);
+            }
+            else {
+                telemetry.addData(">","turn");
+                telemetry.update();
+                leftPower = Range.clip(normalTurn, -1.0, 1.0);
+                rightPower = Range.clip(normalTurn, -1.0, 1.0);
+                rightForwardPower = Range.clip(normalTurn, -1.0, 1.0);
+                leftForwardPower = Range.clip(normalTurn, -1.0, 1.0);
+
+
+                robot.leftForwardDrive.setPower(leftForwardPower);
+                robot.rightForwardDrive.setPower(rightForwardPower);
+                robot.leftDrive.setPower(leftPower);
+                robot.rightDrive.setPower(rightPower);
+            }
+
 
             if(gamepad1.dpad_down)
             {
@@ -197,7 +215,10 @@ public class BHOpMode extends LinearOpMode {
                     rightPower = Range.clip(drive - twist, -0.5, 0.5) ;
                     rightForwardPower = Range.clip(drive - twist, -0.5, 0.5) ;
                     leftForwardPower = Range.clip(drive + twist, -0.5, 0.5) ;
+
+
                 }
+
             }
 
         }

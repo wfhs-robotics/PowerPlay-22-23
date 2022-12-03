@@ -70,11 +70,10 @@ import org.firstinspires.ftc.robotcontroller.external.samples.RobotHardware;
  *  Also add another new file named RobotHardware.java, drawing from the Sample with that name; select Not an OpMode.
  */
 
-@TeleOp(name="OpMode", group="Robot")
+@TeleOp(name="TTOpMode", group="Robot")
 public class TTOpMode extends LinearOpMode {
     private ElapsedTime     runtime = new ElapsedTime();
     private boolean sean = false;
-    public HardwareMap tthw = null;
     TTHardware robot = new TTHardware();
 
     static final double     COUNTS_PER_MOTOR_REV    = 1120;    // eg: TETRIX Motor Encoder
@@ -94,15 +93,11 @@ public class TTOpMode extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-
+        robot.init(hardwareMap);
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
-        // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        robot.leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        robot.rightDrive.setDirection(DcMotor.Direction.FORWARD);
-        robot.rightForwardDrive.setDirection(DcMotorSimple.Direction.FORWARD);
-        robot.leftForwardDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+
 
 
         // initialize all the hardware, using the hardware class. See how clean and simple this is?
@@ -117,40 +112,52 @@ public class TTOpMode extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            robot.init(tthw);
+
 
             // Mecanum drive is controlled with three axes: drive (front-and-back),
             // strafe (left-and-right), and twist (rotating the whole chassis).
             double drive = -gamepad1.left_stick_x;
             double strafe = gamepad1.left_stick_y;
-            double twist = -gamepad1.right_stick_x;
+            double twist = 0;
+            double normalTurn= gamepad1.right_stick_x;
             double cameraServo = gamepad2.left_trigger;
             double slide = -gamepad2.left_stick_y;
             double pickup = gamepad2.right_trigger;
+            double pickupClose = gamepad2.left_trigger;
             boolean topHeight = false;
             boolean midHeight = false;
             boolean lowHeight = false;
 
+
             double cameraPower;
             double pickupPower;
 
+            double leftPower;
+            double rightPower;
+            double leftForwardPower;
+            double rightForwardPower;
+            double slidePower;
 
 
 
-            if(gamepad2.right_trigger > 0) {
+
+            if(pickup > 0) {
                 pickupPower = pickup;
             }
-            if(gamepad2.left_trigger > 0) {
-                cameraPower = cameraServo;
+            if(pickupClose > 0) {
+                pickupPower = pickupClose;
             }
-
-            robot.cameraServo.setPosition(0.0);
+//            if(gamepad2.left_trigger > 0) {
+//                cameraPower = cameraServo;
+//            }
+//
+//            robot.cameraServo.setPosition(0.0);
 
             if(gamepad2.left_bumper) {
                 robot.pickup.setPosition(0);
             }
             if(gamepad2.right_bumper) {
-                robot.pickup.setPosition(2);
+                robot.pickup.setPosition(.45);
             }
 
             if(gamepad2.b){
@@ -163,17 +170,42 @@ public class TTOpMode extends LinearOpMode {
                 lowHeight = true;
             }
 
-          while(lowHeight) {
-                encoderSpool(1.0, 16, 3);
-          }
-          while(midHeight){
-              encoderSpool(1.0, 28, 5);
 
-          }
-          while(topHeight){
-              encoderSpool(1.0, 40, 8);
-          }
 
+
+            int[] heights = {0, (int) (13.5 * COUNTS_PER_MOTOR_REV), (int) (23.5 * COUNTS_PER_MOTOR_REV), (int) (33.5 * COUNTS_PER_MOTOR_REV)};
+
+
+//            int arrayThing = 0;
+//
+//
+//
+//            if(gamepad2.x){
+//                arrayThing = 0;
+//            }
+//            if(gamepad2.a){
+//                arrayThing = 1;
+//            }
+//            if(gamepad2.b){
+//                arrayThing = 2;
+//            }
+//            if(gamepad2.y) {
+//                arrayThing = 3;
+//            }
+//
+//
+//            if(!robot.slide.isBusy()) {
+//                robot.slide.setTargetPosition(heights[arrayThing]);
+//                robot.slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//                robot.slide.setPower(1);
+//            }
+//            if(robot.slide.isBusy()) {
+//                robot.slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//                robot.slide.setPower(0);
+//                robot.slide.setTargetPosition(arrayThing);
+//            }
+//
+//
 
             /*
              * If we had a gyro and wanted to do field-oriented control, here
@@ -222,17 +254,30 @@ public class TTOpMode extends LinearOpMode {
                 for (int i = 0; i < speeds.length; i++) speeds[i] /= max;
             }
 
-            // apply the calculated values to the motors.
-            robot.leftForwardDrive.setPower(-speeds[0]);
-            robot.rightForwardDrive.setPower(speeds[1]);
-            robot.leftDrive.setPower(-speeds[2]);
-            robot.rightDrive.setPower(speeds[3]);
 
-            double leftPower = Range.clip(drive + twist, -1.0, 1.0) ;
-            double rightPower = Range.clip(drive - twist, -1.0, 1.0) ;
-            double rightForwardPower = Range.clip(drive - twist, -1.0, 1.0) ;
-            double leftForwardPower = Range.clip(drive + twist, -1.0, 1.0) ;
-            double slidePower = Range.clip(slide, -1.0, 1.0);
+            // apply the calculated values to the motors.
+            if(normalTurn == 0) {
+                telemetry.addData(">", "Strafe");
+                telemetry.update();
+                robot.leftForwardDrive.setPower(speeds[0]);
+                robot.rightForwardDrive.setPower(speeds[1]);
+                robot.leftDrive.setPower(speeds[2]);
+                robot.rightDrive.setPower(speeds[3]);
+            }
+            else {
+                telemetry.addData(">","turn");
+                telemetry.update();
+                leftPower = Range.clip(normalTurn, -1.0, 1.0);
+                rightPower = Range.clip(normalTurn, -1.0, 1.0);
+                rightForwardPower = Range.clip(normalTurn, -1.0, 1.0);
+                leftForwardPower = Range.clip(normalTurn, -1.0, 1.0);
+
+
+                robot.leftForwardDrive.setPower(-leftForwardPower);
+                robot.rightForwardDrive.setPower(-rightForwardPower);
+                robot.leftDrive.setPower(leftPower);
+                robot.rightDrive.setPower(rightPower);
+            }
 
 
             if(gamepad1.dpad_down)
@@ -258,61 +303,12 @@ public class TTOpMode extends LinearOpMode {
 
                 }
             }
-            robot.leftForwardDrive.setPower(leftPower);
-            robot.rightForwardDrive.setPower(rightPower);
-            robot.leftDrive.setPower(rightForwardPower);
-            robot.rightDrive.setPower(leftForwardPower);
+            slidePower = Range.clip(slide, -1,1);
             robot.slide.setPower(slidePower);
 
         }
 
     }
 
-    public void encoderSpool(double speed, double spoolInches, double timeoutS) {
-        int spoolTarget;
 
-        // Ensure that the opmode is still active
-        if (opModeIsActive()) {
-
-            // Determine new target position, and pass to motor controller
-            spoolTarget = robot.slide.getCurrentPosition() + (int)(spoolInches * COUNTS_PER_INCH_SPOOL);
-            robot.slide.setTargetPosition(spoolTarget);
-
-
-            // Turn On RUN_TO_POSITION
-            robot.slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-
-            // reset the timeout time and start motion.
-            runtime.reset();
-            robot.slide.setPower(Math.abs(speed));
-
-
-            // keep looping while we are still active, and there is time left, and both motors are running.
-            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
-            // its target position, the motion will stop.  This is "safer" in the event that the robot will
-            // always end the motion as soon as possible.
-            // However, if you require that BOTH motors have finished their moves before the robot continues
-            // onto the next step, use (isBusy() || isBusy()) in the loop test.
-            while (opModeIsActive() &&
-                    (runtime.seconds() < timeoutS) &&
-                    (robot.slide.isBusy())) {
-
-                // Display it for the driver.
-            /*    telemetry.addData("Path1",  "Running to %7d :%7d", spoolTarget);
-                telemetry.addData("Path2",  "Running at %7d :%7d",
-                        robot.spool.getCurrentPosition());
-           */
-            }
-
-            // Stop all motion;
-            robot.slide.setPower(0);
-            robot.slide.setPower(0);
-
-            // Turn off RUN_TO_POSITION
-            robot.slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-
-            sleep(250);   // optional pause after each move
-        }}
 }

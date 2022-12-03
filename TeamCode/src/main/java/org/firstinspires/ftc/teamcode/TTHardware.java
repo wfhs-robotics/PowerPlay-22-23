@@ -86,15 +86,12 @@ public class TTHardware
         leftForwardDrive    = hwMap.get(DcMotor.class, "leftForwardDrive");
         rightForwardDrive = hwMap.get(DcMotor.class, "rightForwardDrive");
 //        cameraServo = hwMap.get(Servo.class, "cameraServo");
-//        slide = hwMap.get(DcMotor.class, "slide");
-//        pickup = hwMap.get(Servo.class, "pickup");
+        slide = hwMap.get(DcMotor.class, "slide");
+        pickup = hwMap.get(Servo.class, "pickup");
 
 
 
-        leftDrive.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
-        rightDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftForwardDrive.setDirection(DcMotorSimple.Direction.FORWARD);
-        rightForwardDrive.setDirection(DcMotor.Direction.REVERSE);
+
 
 
         // Set to FORWARD if using AndyMark motors
@@ -104,7 +101,7 @@ public class TTHardware
         rightDrive.setPower(0);
         leftForwardDrive.setPower(0);
         rightForwardDrive.setPower(0);
-//        slide.setPower(0);
+        slide.setPower(0);
 
 
 
@@ -115,7 +112,7 @@ public class TTHardware
         rightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftForwardDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightForwardDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//        slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
 
