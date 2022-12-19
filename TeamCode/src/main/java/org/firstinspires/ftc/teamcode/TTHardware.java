@@ -38,6 +38,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+
 /**
  * This is NOT an opmode.
  *
@@ -64,6 +66,7 @@ public class TTHardware
     public Servo cameraServo = null;
     public DcMotor slide = null;
     public Servo pickup = null;
+    public WebcamName webcamName = null;
 
 
     /* local OpMode members. */
@@ -88,6 +91,7 @@ public class TTHardware
 //        cameraServo = hwMap.get(Servo.class, "cameraServo");
         slide = hwMap.get(DcMotor.class, "slide");
         pickup = hwMap.get(Servo.class, "pickup");
+        webcamName = hwMap.get(WebcamName.class, "Webcam 1");
 
 
 

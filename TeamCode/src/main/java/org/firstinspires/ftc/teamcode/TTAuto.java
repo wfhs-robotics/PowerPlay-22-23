@@ -48,13 +48,13 @@ import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -98,27 +98,26 @@ public class TTAuto extends LinearOpMode {
     /* Declare OpMode members. */
     TTHardware robot = new TTHardware();
 
-    private ElapsedTime     runtime = new ElapsedTime();// Use a Pushbot's hardware
+    private ElapsedTime runtime = new ElapsedTime();// Use a Pushbot's hardware
 
-    static final double     COUNTS_PER_MOTOR_REV    = 1120;    // eg: TETRIX Motor Encoder
-    static final double     COUNTS_PER_MOTOR_HEX    = 288;
-    static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
-    static final double     WHEEL_DIAMETER_INCHES   = 3.0 ;     // For figuring circumference
-    static final double     SPOOL_DIAMETER_INCHES   = 2.0;
-    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
+    static final double COUNTS_PER_MOTOR_REV = 1120;    // eg: TETRIX Motor Encoder
+    static final double COUNTS_PER_MOTOR_HEX = 288;
+    static final double DRIVE_GEAR_REDUCTION = 1.0;     // This is < 1.0 if geared UP
+    static final double WHEEL_DIAMETER_INCHES = 3.0;     // For figuring circumference
+    static final double SPOOL_DIAMETER_INCHES = 2.0;
+    static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double     COUNTS_PER_INCH_SPOOL         = (COUNTS_PER_MOTOR_HEX * DRIVE_GEAR_REDUCTION) /
-            (SPOOL_DIAMETER_INCHES *3.14);
+    static final double COUNTS_PER_INCH_SPOOL = (COUNTS_PER_MOTOR_HEX * DRIVE_GEAR_REDUCTION) /
+            (SPOOL_DIAMETER_INCHES * 3.14);
 
     // These constants define the desired driving/control characteristics
     // The can/should be tweaked to suite the specific robot drive train.
-    static final double     DRIVE_SPEED             = 0.4;     // Nominal speed for better accuracy.
-    static final double     TURN_SPEED              = 0.35;     // Nominal half speed for better accuracy.
+    static final double DRIVE_SPEED = 0.4;     // Nominal speed for better accuracy.
+    static final double TURN_SPEED = 0.35;     // Nominal half speed for better accuracy.
 
-    static final double     HEADING_THRESHOLD       = 1 ;      // As tight as we can make it with an integer gyro
-    static final double     P_TURN_COEFF            = 0.1;     // Larger is more responsive, but also less stable
-    static final double     P_DRIVE_COEFF           = 0.15;     // Larger is more responsive, but also less stable
-
+    static final double HEADING_THRESHOLD = 1;      // As tight as we can make it with an integer gyro
+    static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
+    static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
 
 
     BNO055IMU imu;
@@ -129,19 +128,25 @@ public class TTAuto extends LinearOpMode {
 
     // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
     // We will define some constants and conversions here
-    private static final float mmPerInch        = 25.4f;
-    private static final float mmTargetHeight   = 6 * mmPerInch;          // the height of the center of the target image above the floor
-    private static final float halfField        = 72 * mmPerInch;
-    private static final float halfTile         = 12 * mmPerInch;
-    private static final float oneAndHalfTile   = 36 * mmPerInch;
+    private static final float mmPerInch = 25.4f;
+    private static final float mmTargetHeight = 6 * mmPerInch;          // the height of the center of the target image above the floor
+    private static final float halfField = 72 * mmPerInch;
+    private static final float halfTile = 12 * mmPerInch;
+    private static final float oneAndHalfTile = 36 * mmPerInch;
 
     // Class Members
-    private OpenGLMatrix lastLocation   = null;
-    private VuforiaLocalizer vuforia    = null;
-    private VuforiaTrackables targets   = null ;
-    private WebcamName webcamName       = null;
+    private OpenGLMatrix lastLocation = null;
+    private VuforiaLocalizer vuforia = null;
+    private VuforiaTrackables targets = null;
+    private WebcamName webcamName = null;
+    List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
 
-    private boolean targetVisible       = false;
+    String pictureName = "No Target Identified";
+    String targetDistance = "No Target Identified";
+    String pictureType = "No Target Identified";
+    ArrayList<String> targetArrayList = new ArrayList<>()
+
+    private boolean targetVisible = false;
 
     @Override
     public void runOpMode() {
@@ -158,6 +163,7 @@ public class TTAuto extends LinearOpMode {
         // We also indicate which camera we wish to use.
         parameters.cameraName = webcamName;
 
+
         // Turn off Extended tracking.  Set this true if you want Vuforia to track beyond the target.
         parameters.useExtendedTracking = false;
 
@@ -169,19 +175,21 @@ public class TTAuto extends LinearOpMode {
         targets = this.vuforia.loadTrackablesFromAsset("PowerPlay");
 
         // For convenience, gather together all the trackable objects in one easily-iterable collection */
-        List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
+
         allTrackables.addAll(targets);
 
 
+        identifyTarget(0, "Red Audience Wall", -halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, 90);
+        identifyTarget(1, "Red Rear Wall", halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, -90);
+        identifyTarget(2, "Blue Audience Wall", -halfField, oneAndHalfTile, mmTargetHeight, 90, 0, 90);
+        identifyTarget(3, "Blue Rear Wall", halfField, oneAndHalfTile, mmTargetHeight, 90, 0, -90);
 
         // Name and locate each trackable object
 
 
-
-
-        final float CAMERA_FORWARD_DISPLACEMENT  = 0.0f * mmPerInch;   // eg: Enter the forward distance from the center of the robot to the camera lens
+        final float CAMERA_FORWARD_DISPLACEMENT = 0.0f * mmPerInch;   // eg: Enter the forward distance from the center of the robot to the camera lens
         final float CAMERA_VERTICAL_DISPLACEMENT = 6.0f * mmPerInch;   // eg: Camera is 6 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT     = 0.0f * mmPerInch;   // eg: Enter the left distance from the center of the robot to the camera lens
+        final float CAMERA_LEFT_DISPLACEMENT = 0.0f * mmPerInch;   // eg: Enter the left distance from the center of the robot to the camera lens
 
         OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
@@ -192,139 +200,60 @@ public class TTAuto extends LinearOpMode {
             ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(parameters.cameraName, cameraLocationOnRobot);
         }
 
+        robot.init(hardwareMap);
+        // Ensure the robot it stationary, then reset the encoders and calibrate the gyro.
+
+        robot.leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.leftForwardDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.rightForwardDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
+        telemetry.addData(">", "Robot Ready.");    //
+        telemetry.update();
+
 
         targets.activate();
         while (!isStopRequested()) {
 
-            // check all the trackable targets to see which one (if any) is visible.
-            targetVisible = false;
-            for (VuforiaTrackable trackable : allTrackables) {
-                if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
-                    telemetry.addData("Visible Target", trackable.getName());
-                    targetVisible = true;
+            robot.cameraServo.setPosition(75);
+            ArrayList<String> pictureType = findTarget();
+           if(!pictureType.isEmpty()) {
+               if(pictureType.contains()) {
 
-                    // getUpdatedRobotLocation() will return null if no new information is available since
-                    // the last time that call was made, or if the trackable is not currently visible.
-                    OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
-                    if (robotLocationTransform != null) {
-                        lastLocation = robotLocationTransform;
-                    }
-                    break;
-                }
-            }
+               }
+           }
 
-            // Provide feedback as to where the robot is located (if we know).
-
-
-            // Disable Tracking when we are done;
-            targets.deactivate();
-
-
-            BNO055IMU.Parameters camParameters = new BNO055IMU.Parameters();
-            imu = hardwareMap.get(BNO055IMU.class, "imu");
-            imu.initialize(camParameters);
-
-
-            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-
-            double right90 = angles.firstAngle - 90;
-            double left90 = angles.firstAngle + 90;
-            /*
-             * Initialize the standard drive system variables.
-             * The init() method of the hardware class does most of the work here
-             */
-            robot.init(hardwareMap);
-            // Ensure the robot it stationary, then reset the encoders and calibrate the gyro.
-
-            robot.leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            robot.rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            robot.leftForwardDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            robot.rightForwardDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-            robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            // Send telemetry message to alert driver that we are calibrating;
-            telemetry.addData(">", "Calibrating Gyro");    //
-            telemetry.update();
-
-
-            // make sure the gyro is calibrated before continuing
-            while (!isStopRequested() && imu.isGyroCalibrated()) {
-                sleep(50);
-                idle();
-            }
-
-            telemetry.addData(">", "Robot Ready.");    //
-            telemetry.update();
-
-
-            // Wait for the game to start (Display Gyro value), and reset gyro before we move..
-            while (!isStarted()) {
-                telemetry.addData(">", "Robot Heading = %f", angles.firstAngle);
-                telemetry.update();
-            }
-
-
-            // Step through each leg of the path,
-            // Note: Reverse movement is obtained by setting a negative distance (not speed)
-            // Put a hold after each turn
-            for (VuforiaTrackable trackable : allTrackables) {
-                VectorF translation = lastLocation.getTranslation();
-                if (targetVisible && translation.get(0) / mmPerInch < 8) {
-                    String pictureType = trackable.getName();
-
-                    if (pictureType == "Red Audience Wall") {
-                        telemetry.addData(">", "Red Audience");
-                        targets.deactivate();
-                    }
-                    if (pictureType == "Red Rear Wall") {
-                        telemetry.addData(">", "Red Rear");
-                        targets.deactivate();
-                    }
-                    if (pictureType == "Blue Audience Wall") {
-                        telemetry.addData(">", "Blue Audience");
-                        targets.deactivate();
-
-                    }
-                    if (pictureType == "Blue Rear Wall") {
-                        telemetry.addData(">", "Blue Rear");
-                        targets.deactivate();
-
-
-                    }
-                    OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
-                    if (robotLocationTransform != null) {
-                        lastLocation = robotLocationTransform;
-                    }
-                }
-            }
 
 
         }
-
     }
-    public void gyroDrive ( double speed,
-                            double distance,
-                            double angle) {
 
-        int     newLeftTarget;
-        int     newRightTarget;
-        int     newRForwardTarget;
-        int     newLForwardTarget;
-        int     moveCounts;
-        double  max;
-        double  error;
-        double  steer;
-        double  leftSpeed;
-        double  rightSpeed;
+    public void gyroDrive(double speed,
+                          double distance,
+                          double angle) {
+
+        int newLeftTarget;
+        int newRightTarget;
+        int newRForwardTarget;
+        int newLForwardTarget;
+        int moveCounts;
+        double max;
+        double error;
+        double steer;
+        double leftSpeed;
+        double rightSpeed;
 
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
-            moveCounts = (int)(distance * COUNTS_PER_INCH);
+            moveCounts = (int) (distance * COUNTS_PER_INCH);
             newLeftTarget = robot.leftDrive.getCurrentPosition() + moveCounts;
             newRightTarget = robot.rightDrive.getCurrentPosition() + moveCounts;
             newRForwardTarget = robot.rightForwardDrive.getCurrentPosition() + moveCounts;
@@ -365,8 +294,7 @@ public class TTAuto extends LinearOpMode {
 
                 // Normalize speeds if either one exceeds +/- 1.0;
                 max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
-                if (max > 1.0)
-                {
+                if (max > 1.0) {
                     leftSpeed /= max;
                     rightSpeed /= max;
                 }
@@ -378,11 +306,11 @@ public class TTAuto extends LinearOpMode {
 
 
                 // Display drive status for the driver.
-                telemetry.addData("Err/St",  "%5.1f/%5.1f",  error, steer);
-                telemetry.addData("Target",  "%7d:%7d",      newLeftTarget,  newRightTarget);
-                telemetry.addData("Actual",  "%7d:%7d",      robot.leftDrive.getCurrentPosition(),
+                telemetry.addData("Err/St", "%5.1f/%5.1f", error, steer);
+                telemetry.addData("Target", "%7d:%7d", newLeftTarget, newRightTarget);
+                telemetry.addData("Actual", "%7d:%7d", robot.leftDrive.getCurrentPosition(),
                         robot.rightDrive.getCurrentPosition());
-                telemetry.addData("Speed",   "%5.2f:%5.2f",  leftSpeed, rightSpeed);
+                telemetry.addData("Speed", "%5.2f:%5.2f", leftSpeed, rightSpeed);
                 telemetry.update();
             }
 
@@ -401,17 +329,17 @@ public class TTAuto extends LinearOpMode {
     }
 
     /**
-     *  Method to spin on central axis to point in a new direction.
-     *  Move will stop if either of these conditions occur:
-     *  1) Move gets to the heading (angle)
-     *  2) Driver stops the opmode running.
+     * Method to spin on central axis to point in a new direction.
+     * Move will stop if either of these conditions occur:
+     * 1) Move gets to the heading (angle)
+     * 2) Driver stops the opmode running.
      *
      * @param speed Desired speed of turn.
-     * @param angle      Absolute Angle (in Degrees) relative to last gyro reset.
-     *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
-     *                   If a relative angle is required, add/subtract from current heading.
+     * @param angle Absolute Angle (in Degrees) relative to last gyro reset.
+     *              0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *              If a relative angle is required, add/subtract from current heading.
      */
-    public void gyroTurn (  double speed, double angle) {
+    public void gyroTurn(double speed, double angle) {
 
         // keep looping while we are still active, and not on heading.
         while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF)) {
@@ -421,16 +349,16 @@ public class TTAuto extends LinearOpMode {
     }
 
     /**
-     *  Method to obtain & hold a heading for a finite amount of time
-     *  Move will stop once the requested time has elapsed
+     * Method to obtain & hold a heading for a finite amount of time
+     * Move will stop once the requested time has elapsed
      *
-     * @param speed      Desired speed of turn.
-     * @param angle      Absolute Angle (in Degrees) relative to last gyro reset.
-     *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
-     *                   If a relative angle is required, add/subtract from current heading.
-     * @param holdTime   Length of time (in seconds) to hold the specified heading.
+     * @param speed    Desired speed of turn.
+     * @param angle    Absolute Angle (in Degrees) relative to last gyro reset.
+     *                 0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *                 If a relative angle is required, add/subtract from current heading.
+     * @param holdTime Length of time (in seconds) to hold the specified heading.
      */
-    public void gyroHold( double speed, double angle, double holdTime) {
+    public void gyroHold(double speed, double angle, double holdTime) {
 
         ElapsedTime holdTimer = new ElapsedTime();
 
@@ -450,21 +378,20 @@ public class TTAuto extends LinearOpMode {
     }
 
 
-
     /**
      * Perform one cycle of closed loop heading control.
      *
-     * @param speed     Desired speed of turn.
-     * @param angle     Absolute Angle (in Degrees) relative to last gyro reset.
-     *                  0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
-     *                  If a relative angle is required, add/subtract from current heading.
-     * @param PCoeff    Proportional Gain coefficient
+     * @param speed  Desired speed of turn.
+     * @param angle  Absolute Angle (in Degrees) relative to last gyro reset.
+     *               0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *               If a relative angle is required, add/subtract from current heading.
+     * @param PCoeff Proportional Gain coefficient
      * @return
      */
     boolean onHeading(double speed, double angle, double PCoeff) {
-        double   error ;
-        double   steer ;
-        boolean  onTarget = false ;
+        double error;
+        double steer;
+        boolean onTarget = false;
         double leftSpeed;
         double rightSpeed;
 
@@ -473,14 +400,13 @@ public class TTAuto extends LinearOpMode {
 
         if (Math.abs(error) <= HEADING_THRESHOLD) {
             steer = 0.0;
-            leftSpeed  = 0.0;
+            leftSpeed = 0.0;
             rightSpeed = 0.0;
             onTarget = true;
-        }
-        else {
+        } else {
             steer = getSteer(error, PCoeff);
-            rightSpeed  = speed * steer;
-            leftSpeed   = -rightSpeed;
+            rightSpeed = speed * steer;
+            leftSpeed = -rightSpeed;
         }
 
         // Send desired speeds to motors.
@@ -499,25 +425,27 @@ public class TTAuto extends LinearOpMode {
 
     /**
      * getError determines the error between the target angle and the robot's current heading
-     * @param   targetAngle  Desired angle (relative to global reference established at last Gyro Reset).
-     * @return  error angle: Degrees in the range +/- 180. Centered on the robot's frame of reference
-     *          +ve error means the robot should turn LEFT (CCW) to reduce error.
+     *
+     * @param targetAngle Desired angle (relative to global reference established at last Gyro Reset).
+     * @return error angle: Degrees in the range +/- 180. Centered on the robot's frame of reference
+     * +ve error means the robot should turn LEFT (CCW) to reduce error.
      */
     public double getError(double targetAngle) {
 
         double robotError;
-        angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         // calculate error in -179 to +180 range  (
         robotError = targetAngle - angles.firstAngle;
-        while (robotError > 180)  robotError -= 360;
+        while (robotError > 180) robotError -= 360;
         while (robotError <= -180) robotError += 360;
         return robotError;
     }
 
     /**
      * returns desired steering force.  +/- 1 range.  +ve = steer left
-     * @param error   Error angle in robot relative degrees
-     * @param PCoeff  Proportional Gain Coefficient
+     *
+     * @param error  Error angle in robot relative degrees
+     * @param PCoeff Proportional Gain Coefficient
      * @return
      */
     public double getSteer(double error, double PCoeff) {
@@ -525,10 +453,58 @@ public class TTAuto extends LinearOpMode {
 
 
     }
-    void    identifyTarget(int targetIndex, String targetName, float dx, float dy, float dz, float rx, float ry, float rz) {
+
+    /***
+     * Identify a target by naming it, and setting its position and orientation on the field
+     * @param targetIndex
+     * @param targetName
+     * @param dx, dy, dz  Target offsets in x,y,z axes
+     * @param rx, ry, rz  Target rotations in x,y,z axes
+     */
+    void identifyTarget(int targetIndex, String targetName, float dx, float dy, float dz, float rx, float ry, float rz) {
         VuforiaTrackable aTarget = targets.get(targetIndex);
         aTarget.setName(targetName);
         aTarget.setLocation(OpenGLMatrix.translation(dx, dy, dz)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, rx, ry, rz)));
+    }
+
+    public ArrayList findTarget() {
+        for (VuforiaTrackable trackable : allTrackables) {
+            if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
+
+                telemetry.addData(">", "I see it");
+                telemetry.update();
+                sleep(10000);
+
+                OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
+
+
+                if (robotLocationTransform != null) {
+                    lastLocation = robotLocationTransform;
+                }
+
+                VectorF translation = lastLocation.getTranslation();
+                if (targetVisible) { // Get the X coords, divide to get inch, divide to get feet.
+                    pictureName = trackable.getName();
+                    if(pictureName != "No Target Identified") {
+                        if (pictureName.contains("Red")) {
+                            pictureType = "Red";
+                        }
+                        if(pictureName.contains("Blue")) {
+                            pictureType = "Blue";
+                        }
+                    }
+                    targetDistance = "-" + (translation.get(0) / mmPerInch / 12);
+
+                   ;
+                    targetArrayList.add(pictureType);
+                    targetArrayList.add(targetDistance);
+
+                }
+
+
+            }
+        }
+        return targetArrayList;
     }
 }

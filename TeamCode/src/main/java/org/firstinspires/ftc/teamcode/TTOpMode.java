@@ -29,6 +29,10 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
+
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -39,6 +43,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcontroller.external.samples.RobotHardware;
+import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 
 /**
  * This OpMode Sample illustrates how to use an external "hardware" class to modularize all the robot's sensors and actuators.
@@ -140,13 +147,6 @@ public class TTOpMode extends LinearOpMode {
 
 
 
-
-            if(pickup > 0) {
-                pickupPower = pickup;
-            }
-            if(pickupClose > 0) {
-                pickupPower = pickupClose;
-            }
 //            if(gamepad2.left_trigger > 0) {
 //                cameraPower = cameraServo;
 //            }
@@ -309,6 +309,8 @@ public class TTOpMode extends LinearOpMode {
         }
 
     }
+
+
 
 
 }
