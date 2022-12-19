@@ -143,8 +143,8 @@ public class TTAuto extends LinearOpMode {
 
     String pictureName = "No Target Identified";
     String targetDistance = "No Target Identified";
-    String pictureType = "No Target Identified";
-    ArrayList<String> targetArrayList = new ArrayList<>()
+
+    ArrayList<String> targetArrayList = new ArrayList<>();
 
     private boolean targetVisible = false;
 
@@ -177,6 +177,10 @@ public class TTAuto extends LinearOpMode {
         // For convenience, gather together all the trackable objects in one easily-iterable collection */
 
         allTrackables.addAll(targets);
+
+        telemetry.addData(">", String.valueOf(allTrackables));
+        telemetry.update();
+
 
 
         identifyTarget(0, "Red Audience Wall", -halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, 90);
@@ -214,31 +218,31 @@ public class TTAuto extends LinearOpMode {
         robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
-        telemetry.addData(">", "Robot Ready.");    //
-        telemetry.update();
+//        telemetry.addData(">", "Robot Ready.");    //
+//        telemetry.update();
 
 
         targets.activate();
+        waitForStart();
         while (!isStopRequested()) {
 
             robot.cameraServo.setPosition(75);
-            ArrayList<String> pictureType = findTarget();
-           if(!pictureType.isEmpty()) {
-               if(targetArrayList.get(0) == "Blue") {
-                    if(Float.parseFloat(targetArrayList.get(1)) < 48) {
+            ArrayList<String> targetResults = findTarget();
+            if (!targetResults.isEmpty()) {
+                String pictureType = targetResults.get(0);
 
-
-                    } else {
-
-                    }
-               }
-               if(targetArrayList.get(0) == "Red") {
-                   if(Float.parseFloat(targetArrayList.get(1)) < 48) {
-
-                   } else {
-
-                   }
-               }
+                if (pictureType == "Red Audience Wall") {
+//                    gyroDrive();
+                } else if (pictureType == "Red Rear Wall") {
+//                    gyroDrive();
+                } else if(pictureType == "Blue Rear Wall"){
+//                    gyroDrive();
+                } else if(pictureType == "Blue Audience Wall"){
+//                    gyroDrive();
+                }
+           } else {
+               telemetry.addLine("Error: Returned ArrayList is Empty");
+               telemetry.update();
            }
 
 
@@ -498,25 +502,19 @@ public class TTAuto extends LinearOpMode {
                 VectorF translation = lastLocation.getTranslation();
                 if (targetVisible) { // Get the X coords, divide to get inch, divide to get feet.
                     pictureName = trackable.getName();
-                    if(pictureName != "No Target Identified") {
-                        if (pictureName.contains("Red")) {
-                            pictureType = "Red";
-                        }
-                        if(pictureName.contains("Blue")) {
-                            pictureType = "Blue";
-                        }
+
                     }
                     targetDistance = "-" + (translation.get(0) / mmPerInch / 12);
 
                    ;
-                    targetArrayList.add(pictureType);
+                    targetArrayList.add(pictureName);
                     targetArrayList.add(targetDistance);
 
                 }
 
 
             }
-        }
+
         return targetArrayList;
     }
 }
