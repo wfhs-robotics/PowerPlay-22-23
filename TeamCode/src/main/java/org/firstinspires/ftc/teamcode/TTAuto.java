@@ -224,8 +224,20 @@ public class TTAuto extends LinearOpMode {
             robot.cameraServo.setPosition(75);
             ArrayList<String> pictureType = findTarget();
            if(!pictureType.isEmpty()) {
-               if(pictureType.contains()) {
+               if(targetArrayList.get(0) == "Blue") {
+                    if(Float.parseFloat(targetArrayList.get(1)) < 48) {
 
+
+                    } else {
+
+                    }
+               }
+               if(targetArrayList.get(0) == "Red") {
+                   if(Float.parseFloat(targetArrayList.get(1)) < 48) {
+
+                   } else {
+
+                   }
                }
            }
 
