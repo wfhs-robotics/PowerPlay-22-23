@@ -102,7 +102,7 @@ public class TTAuto extends LinearOpMode {
 
     static final double COUNTS_PER_MOTOR_REV = 1120;    // eg: TETRIX Motor Encoder
     static final double COUNTS_PER_MOTOR_HEX = 288;
-    static final double DRIVE_GEAR_REDUCTION = 1.0;     // This is < 1.0 if geared UP
+    static final double DRIVE_GEAR_REDUCTION = 2.0;     // This is < 1.0 if geared UP
     static final double WHEEL_DIAMETER_INCHES = 3.0;     // For figuring circumference
     static final double SPOOL_DIAMETER_INCHES = 2.0;
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
@@ -150,89 +150,94 @@ public class TTAuto extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+  //      while(opModeInInit()) {
 
-        webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
-
-
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
-
-        // VuforiaLocalizer.Parameters camParameters = new VuforiaLocalizer.Parameters();
-        parameters.vuforiaLicenseKey = VUFORIA_KEY;
-
-        // We also indicate which camera we wish to use.
-        parameters.cameraName = webcamName;
+            webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
 
 
-        // Turn off Extended tracking.  Set this true if you want Vuforia to track beyond the target.
-        parameters.useExtendedTracking = false;
+            int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+            VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
 
-        //  Instantiate the Vuforia engine
-        vuforia = ClassFactory.getInstance().createVuforia(parameters);
+            // VuforiaLocalizer.Parameters camParameters = new VuforiaLocalizer.Parameters();
+            parameters.vuforiaLicenseKey = VUFORIA_KEY;
 
-        // Load the data sets for the trackable objects. These particular data
-        // sets are stored in the 'assets' part of our application.
-        targets = this.vuforia.loadTrackablesFromAsset("PowerPlay");
-
-        // For convenience, gather together all the trackable objects in one easily-iterable collection */
-
-        allTrackables.addAll(targets);
-
-        telemetry.addData(">", String.valueOf(allTrackables));
-        telemetry.update();
+            // We also indicate which camera we wish to use.
+            parameters.cameraName = webcamName;
 
 
+            // Turn off Extended tracking.  Set this true if you want Vuforia to track beyond the target.
+            parameters.useExtendedTracking = false;
 
-        identifyTarget(0, "Red Audience Wall", -halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, 90);
-        identifyTarget(1, "Red Rear Wall", halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, -90);
-        identifyTarget(2, "Blue Audience Wall", -halfField, oneAndHalfTile, mmTargetHeight, 90, 0, 90);
-        identifyTarget(3, "Blue Rear Wall", halfField, oneAndHalfTile, mmTargetHeight, 90, 0, -90);
+            //  Instantiate the Vuforia engine
+            vuforia = ClassFactory.getInstance().createVuforia(parameters);
 
-        // Name and locate each trackable object
+            // Load the data sets for the trackable objects. These particular data
+            // sets are stored in the 'assets' part of our application.
+            targets = this.vuforia.loadTrackablesFromAsset("PowerPlay");
+
+            // For convenience, gather together all the trackable objects in one easily-iterable collection */
+
+            allTrackables.addAll(targets);
+
+            telemetry.addData(">", String.valueOf(allTrackables));
+            telemetry.update();
 
 
-        final float CAMERA_FORWARD_DISPLACEMENT = 0.0f * mmPerInch;   // eg: Enter the forward distance from the center of the robot to the camera lens
-        final float CAMERA_VERTICAL_DISPLACEMENT = 6.0f * mmPerInch;   // eg: Camera is 6 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT = 0.0f * mmPerInch;   // eg: Enter the left distance from the center of the robot to the camera lens
+            identifyTarget(0, "Red Audience Wall", -halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, 90);
+            identifyTarget(1, "Red Rear Wall", halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, -90);
+            identifyTarget(2, "Blue Audience Wall", -halfField, oneAndHalfTile, mmTargetHeight, 90, 0, 90);
+            identifyTarget(3, "Blue Rear Wall", halfField, oneAndHalfTile, mmTargetHeight, 90, 0, -90);
 
-        OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
-                .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 0));
+            // Name and locate each trackable object
 
-        /**  Let all the trackable listeners know where the camera is.  */
-        for (VuforiaTrackable trackable : allTrackables) {
-            ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(parameters.cameraName, cameraLocationOnRobot);
-        }
 
-        robot.init(hardwareMap);
-        // Ensure the robot it stationary, then reset the encoders and calibrate the gyro.
+            final float CAMERA_FORWARD_DISPLACEMENT = 0.0f * mmPerInch;   // eg: Enter the forward distance from the center of the robot to the camera lens
+            final float CAMERA_VERTICAL_DISPLACEMENT = 6.0f * mmPerInch;   // eg: Camera is 6 Inches above ground
+            final float CAMERA_LEFT_DISPLACEMENT = 0.0f * mmPerInch;   // eg: Enter the left distance from the center of the robot to the camera lens
 
-        robot.leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.leftForwardDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.rightForwardDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
+                    .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
+                    .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 0));
 
-        robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            /**  Let all the trackable listeners know where the camera is.  */
+            for (VuforiaTrackable trackable : allTrackables) {
+                ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(parameters.cameraName, cameraLocationOnRobot);
+            }
+
+            robot.init(hardwareMap);
+            // Ensure the robot it stationary, then reset the encoders and calibrate the gyro.
+
+            robot.leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.leftForwardDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.rightForwardDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
 //        telemetry.addData(">", "Robot Ready.");    //
 //        telemetry.update();
 
 
-        targets.activate();
+            targets.activate();
+//        }
+        telemetry.addLine("Init Finished");
+        telemetry.update();
         waitForStart();
         while (!isStopRequested()) {
 
-            robot.cameraServo.setPosition(75);
+            robot.cameraServo.setPosition(0);
             ArrayList<String> targetResults = findTarget();
+            String pictureType = targetResults.get(0);
+            telemetry.addLine(pictureType);
             if (!targetResults.isEmpty()) {
-                String pictureType = targetResults.get(0);
+
 
                 if (pictureType == "Red Audience Wall") {
-//                    gyroDrive();
+                    gyroStrafe(1, 12, 0, "right");
                 } else if (pictureType == "Red Rear Wall") {
 //                    gyroDrive();
                 } else if(pictureType == "Blue Rear Wall"){
@@ -361,6 +366,97 @@ public class TTAuto extends LinearOpMode {
         while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF)) {
             // Update telemetry & Allow time for other processes to run.
             telemetry.update();
+        }
+    }
+
+    public void gyroStrafe(double speed, double distance, double angle, String direction) {
+        int newLeftTarget;
+        int newRightTarget;
+        int newRForwardTarget;
+        int newLForwardTarget;
+        int moveCounts;
+        double max;
+        double error;
+        double steer;
+        double leftSpeed;
+        double rightSpeed;
+
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+
+            // Determine new target position, and pass to motor controller
+            moveCounts = (int) (distance * COUNTS_PER_INCH * 2);
+            newLeftTarget = robot.leftDrive.getCurrentPosition() + moveCounts;
+            newRightTarget = robot.rightDrive.getCurrentPosition() + moveCounts;
+            newRForwardTarget = robot.rightForwardDrive.getCurrentPosition() + moveCounts;
+            newLForwardTarget = robot.leftForwardDrive.getCurrentPosition() + moveCounts;
+
+            // Set Target and Turn On RUN_TO_POSITION
+            robot.leftDrive.setTargetPosition(newLeftTarget);
+            robot.rightDrive.setTargetPosition(newRightTarget);
+            robot.leftForwardDrive.setTargetPosition(newLForwardTarget);
+            robot.rightForwardDrive.setTargetPosition(newRForwardTarget);
+
+            robot.leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            // start motion.
+            speed = Range.clip(Math.abs(speed), 0.0, 1.0);
+            if(direction == "left") {
+                robot.leftDrive.setPower(-speed);
+                robot.rightDrive.setPower(speed);
+                robot.leftForwardDrive.setPower(-speed);
+                robot.rightForwardDrive.setPower(speed);
+            }
+            if(direction == "right") {
+                robot.leftDrive.setPower(speed);
+                robot.rightDrive.setPower(-speed);
+                robot.leftForwardDrive.setPower(speed);
+                robot.rightForwardDrive.setPower(-speed);
+            }
+
+
+            // keep looping while we are still active, and BOTH motors are running.
+            while (opModeIsActive() &&
+                    (robot.leftDrive.isBusy() && robot.rightDrive.isBusy()
+                            && robot.leftForwardDrive.isBusy() && robot.rightForwardDrive.isBusy())) {
+
+                // adjust relative speed based on heading error.
+                error = getError(angle);
+                steer = getSteer(error, P_DRIVE_COEFF);
+
+                // if driving in reverse, the motor correction also needs to be reversed
+                if (distance < 0)
+                    steer *= -1.0;
+
+                leftSpeed = speed - steer;
+                rightSpeed = speed + steer;
+
+                // Normalize speeds if either one exceeds +/- 1.0;
+                max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
+                if (max > 1.0) {
+                    leftSpeed /= max;
+                    rightSpeed /= max;
+                }
+
+                robot.leftDrive.setPower(leftSpeed);
+                robot.rightDrive.setPower(rightSpeed);
+                robot.leftForwardDrive.setPower(leftSpeed);
+                robot.rightForwardDrive.setPower(rightSpeed);
+            }
+
+            // Stop all motion;
+            robot.leftDrive.setPower(0);
+            robot.rightDrive.setPower(0);
+            robot.rightForwardDrive.setPower(0);
+            robot.leftForwardDrive.setPower(0);
+
+            // Turn off RUN_TO_POSITION
+            robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
 

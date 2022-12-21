@@ -88,7 +88,7 @@ public class TTHardware
         rightDrive = hwMap.get(DcMotor.class, "rightDrive");
         leftForwardDrive    = hwMap.get(DcMotor.class, "leftForwardDrive");
         rightForwardDrive = hwMap.get(DcMotor.class, "rightForwardDrive");
-//        cameraServo = hwMap.get(Servo.class, "cameraServo");
+        cameraServo = hwMap.get(Servo.class, "cameraServo");
         slide = hwMap.get(DcMotor.class, "slide");
         pickup = hwMap.get(Servo.class, "pickup");
         webcamName = hwMap.get(WebcamName.class, "Webcam 1");
@@ -106,6 +106,7 @@ public class TTHardware
         leftForwardDrive.setPower(0);
         rightForwardDrive.setPower(0);
         slide.setPower(0);
+        cameraServo.setPosition(2); //technical zero
 
 
 
