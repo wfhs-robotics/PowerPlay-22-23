@@ -66,7 +66,7 @@ import com.qualcomm.robotcore.util.Range;
  *  In OnBot Java, add a new OpMode, drawing from this Sample; select TeleOp.
  *  Also add another new file named RobotHardware.java, drawing from the Sample with that name; select Not an OpMode.
  */
-@Disabled
+
 @TeleOp(name="RHOpMode", group="Robot")
 public class RHOpMode extends LinearOpMode {
     private boolean sean = false;
@@ -108,7 +108,7 @@ public class RHOpMode extends LinearOpMode {
             double twist = 0;
             double normalTurn= gamepad1.right_stick_x;
             double cameraServo = gamepad2.left_trigger;
-            double armServo = gamepad2.right_stick_y;
+            double slide = gamepad2.right_stick_y;
 
             double leftPower;
             double rightPower;
@@ -187,8 +187,8 @@ public class RHOpMode extends LinearOpMode {
             if(normalTurn == 0) {
                 telemetry.addData(">", "Strafe");
                 telemetry.update();
-                robot.leftForwardDrive.setPower(speeds[0]);
-                robot.rightForwardDrive.setPower(speeds[1]);
+                robot.leftForwardDrive.setPower(-speeds[0]);
+                robot.rightForwardDrive.setPower(-speeds[1]);
                 robot.leftDrive.setPower(speeds[2]);
                 robot.rightDrive.setPower(speeds[3]);
             }
@@ -197,8 +197,8 @@ public class RHOpMode extends LinearOpMode {
                 telemetry.update();
                 leftPower = Range.clip(normalTurn, -1.0, 1.0);
                 rightPower = Range.clip(normalTurn, -1.0, 1.0);
-                rightForwardPower = Range.clip(-normalTurn, -1.0, 1.0);
-                leftForwardPower = Range.clip(-normalTurn, -1.0, 1.0);
+                rightForwardPower = Range.clip(normalTurn, -1.0, 1.0);
+                leftForwardPower = Range.clip(normalTurn, -1.0, 1.0);
 
 
                 robot.leftForwardDrive.setPower(leftForwardPower);
@@ -236,7 +236,7 @@ public class RHOpMode extends LinearOpMode {
             robot.arm.setPower(Range.clip(arm, -1, 1));
 
 
-            robot.armServo.setPower(Range.clip(armServo, -1, 1));
+            robot.slide.setPower(Range.clip(slide, -1, 1));
 
 
         }
