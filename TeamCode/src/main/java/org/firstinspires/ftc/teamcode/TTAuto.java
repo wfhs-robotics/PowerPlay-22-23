@@ -231,6 +231,12 @@ public class TTAuto extends LinearOpMode {
 
             robot.cameraServo.setPosition(0);
             ArrayList<String> targetResults = findTarget();
+            if(findTarget().isEmpty()) {
+                telemetry.addLine("Couldn't Find Photo, Looking to the right");
+
+                robot.cameraServo.setPosition(1);
+                targetResults = findTarget();
+            }
             String pictureType = targetResults.get(0);
             telemetry.addLine(pictureType);
             if (!targetResults.isEmpty()) {
