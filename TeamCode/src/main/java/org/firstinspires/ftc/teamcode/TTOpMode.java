@@ -76,7 +76,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
  *  In OnBot Java, add a new OpMode, drawing from this Sample; select TeleOp.
  *  Also add another new file named RobotHardware.java, drawing from the Sample with that name; select Not an OpMode.
  */
-
+@Disabled
 @TeleOp(name="TTOpMode", group="Robot")
 public class TTOpMode extends LinearOpMode {
     private ElapsedTime     runtime = new ElapsedTime();

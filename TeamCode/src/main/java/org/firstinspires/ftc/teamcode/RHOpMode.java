@@ -65,8 +65,8 @@ import com.qualcomm.robotcore.util.Range;
  *
  *  In OnBot Java, add a new OpMode, drawing from this Sample; select TeleOp.
  *  Also add another new file named RobotHardware.java, drawing from the Sample with that name; select Not an OpMode.
- */
-@Disabled
+*/
+
 @TeleOp(name="RHOpMode", group="Robot")
 public class RHOpMode extends LinearOpMode {
     private boolean sean = false;
@@ -197,8 +197,8 @@ public class RHOpMode extends LinearOpMode {
                 telemetry.update();
                 leftPower = Range.clip(normalTurn, -1.0, 1.0);
                 rightPower = Range.clip(normalTurn, -1.0, 1.0);
-                rightForwardPower = Range.clip(-normalTurn, -1.0, 1.0);
-                leftForwardPower = Range.clip(-normalTurn, -1.0, 1.0);
+                rightForwardPower = Range.clip(normalTurn, -1.0, 1.0);
+                leftForwardPower = Range.clip(normalTurn, -1.0, 1.0);
 
 
                 robot.leftForwardDrive.setPower(leftForwardPower);

@@ -223,21 +223,17 @@ public class TTAuto extends LinearOpMode {
         robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-
-//        telemetry.addData(">", "Robot Ready.");    //
-//        telemetry.update();
 
 
         targets.activate();
-//        }
+
         telemetry.addLine("Init Finished");
         telemetry.update();
         waitForStart();
 
 
-        robot.cameraServo.setPosition(.6); // turn left
+        robot.cameraServo.setPosition(.8); // turn left
         sleep(1000);
         ArrayList<String> targetResults = findTarget();
         sleep(1000);
@@ -265,7 +261,7 @@ public class TTAuto extends LinearOpMode {
 
 
             if (picture == "Red Audience Wall") {
-                gyroStrafe(1, 12, 0, "right");
+                gyroStrafe(0.1, -12, 0);
             } else if (picture == "Red Rear Wall") {
 //                    gyroDrive();
             } else if (picture == "Blue Rear Wall") {
@@ -392,7 +388,7 @@ public class TTAuto extends LinearOpMode {
         }
     }
 
-    public void gyroStrafe(double speed, double distance, double angle, String direction) {
+    public void gyroStrafe(double speed, double distance, double angle) {
         int newLeftTarget;
         int newRightTarget;
         int newRForwardTarget;
@@ -408,7 +404,7 @@ public class TTAuto extends LinearOpMode {
         if (opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
-            moveCounts = (int) (distance * COUNTS_PER_INCH * 2);
+            moveCounts = (int) (distance * COUNTS_PER_INCH);
             newLeftTarget = robot.leftDrive.getCurrentPosition() + moveCounts;
             newRightTarget = robot.rightDrive.getCurrentPosition() + moveCounts;
             newRForwardTarget = robot.rightForwardDrive.getCurrentPosition() + moveCounts;
@@ -424,20 +420,13 @@ public class TTAuto extends LinearOpMode {
             robot.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            // start motion.
-            speed = Range.clip(Math.abs(speed), 0.0, 1.0);
-            if (direction == "left") {
+            // start motion
+//            speed = Range.clip(Math.abs(speed), 0.0, 1.0);
                 robot.leftDrive.setPower(speed);
-                robot.rightDrive.setPower(-speed);
-                robot.leftForwardDrive.setPower(speed);
-                robot.rightForwardDrive.setPower(-speed);
-            }
-            if (direction == "right") {
-                robot.leftDrive.setPower(-speed);
                 robot.rightDrive.setPower(speed);
-                robot.leftForwardDrive.setPower(-speed);
+                robot.leftForwardDrive.setPower(speed);
                 robot.rightForwardDrive.setPower(speed);
-            }
+
 
 
             // keep looping while we are still active, and BOTH motors are running.

@@ -106,7 +106,7 @@ public class TTHardware
         leftForwardDrive.setPower(0);
         rightForwardDrive.setPower(0);
         slide.setPower(0);
-        cameraServo.setPosition(.27); //technical zero
+        cameraServo.setPosition(.55); //technical zero
 
 
 
