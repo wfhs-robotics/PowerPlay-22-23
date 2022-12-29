@@ -66,7 +66,6 @@ import com.qualcomm.robotcore.util.Range;
  *  In OnBot Java, add a new OpMode, drawing from this Sample; select TeleOp.
  *  Also add another new file named RobotHardware.java, drawing from the Sample with that name; select Not an OpMode.
  */
-@Disabled
 @TeleOp(name="BHOpMode", group="Robot")
 public class BHOpMode extends LinearOpMode {
     private boolean sean = false;
@@ -98,7 +97,7 @@ public class BHOpMode extends LinearOpMode {
             // Mecanum drive is controlled with three axes: drive (front-and-back),
             // strafe (left-and-right), and twist (rotating the whole chassis).
 
-            double drive = -gamepad1.left_stick_x;
+            double drive = gamepad1.left_stick_x;
             double strafe = gamepad1.left_stick_y;
             double twist = 0;
             double normalTurn= gamepad1.right_stick_x;
@@ -189,8 +188,8 @@ public class BHOpMode extends LinearOpMode {
                 leftForwardPower = Range.clip(normalTurn, -1.0, 1.0);
 
 
-                robot.leftForwardDrive.setPower(leftForwardPower);
-                robot.rightForwardDrive.setPower(rightForwardPower);
+                robot.leftForwardDrive.setPower(-leftForwardPower);
+                robot.rightForwardDrive.setPower(-rightForwardPower);
                 robot.leftDrive.setPower(leftPower);
                 robot.rightDrive.setPower(rightPower);
             }

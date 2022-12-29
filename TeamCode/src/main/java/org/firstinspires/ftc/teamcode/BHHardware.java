@@ -85,10 +85,10 @@ public class BHHardware
 
 
 
-        leftDrive.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
+/*        leftDrive.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
         leftForwardDrive.setDirection(DcMotorSimple.Direction.FORWARD);
-        rightForwardDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightForwardDrive.setDirection(DcMotor.Direction.REVERSE);*/
 
 
         // Set to FORWARD if using AndyMark motors

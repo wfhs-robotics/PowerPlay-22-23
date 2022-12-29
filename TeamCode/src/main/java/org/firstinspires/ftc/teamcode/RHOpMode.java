@@ -103,8 +103,8 @@ public class RHOpMode extends LinearOpMode {
             boolean clawOpen = gamepad2.left_bumper;
             boolean clawClose = gamepad2.right_bumper;
 
-            double drive = -gamepad1.left_stick_x;
-            double strafe = gamepad1.left_stick_y;
+            double drive = -gamepad1.left_stick_y;
+            double strafe = gamepad1.left_stick_x;
             double twist = 0;
             double normalTurn= gamepad1.right_stick_x;
             double cameraServo = gamepad2.left_trigger;
@@ -189,8 +189,8 @@ public class RHOpMode extends LinearOpMode {
                 telemetry.update();
                 robot.leftForwardDrive.setPower(speeds[0]);
                 robot.rightForwardDrive.setPower(speeds[1]);
-                robot.leftDrive.setPower(speeds[2]);
-                robot.rightDrive.setPower(speeds[3]);
+                robot.leftDrive.setPower(-speeds[2]);
+                robot.rightDrive.setPower(-speeds[3]);
             }
             else {
                 telemetry.addData(">","turn");
