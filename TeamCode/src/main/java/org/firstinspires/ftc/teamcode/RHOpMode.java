@@ -236,7 +236,7 @@ public class RHOpMode extends LinearOpMode {
             robot.arm.setPower(Range.clip(arm, -1, 1));
 
 
-            robot.armServo.setPower(Range.clip(armServo, -1, 1));
+            robot.slide.setPower(Range.clip(armServo, -1, 1));
 
 
         }

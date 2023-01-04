@@ -102,7 +102,7 @@ public class TTAuto extends LinearOpMode {
 
     static final double COUNTS_PER_MOTOR_REV = 1120;    // eg: TETRIX Motor Encoder
     static final double COUNTS_PER_MOTOR_HEX = 288;
-    static final double DRIVE_GEAR_REDUCTION = 2.0;     // This is < 1.0 if geared UP
+    static final double DRIVE_GEAR_REDUCTION = 1.0;     // This is < 1.0 if geared UP
     static final double WHEEL_DIAMETER_INCHES = 3.0;     // For figuring circumference
     static final double SPOOL_DIAMETER_INCHES = 2.0;
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
@@ -261,7 +261,10 @@ public class TTAuto extends LinearOpMode {
 
 
             if (picture == "Red Audience Wall") {
-                gyroStrafe(0.1, -12, 0);
+                gyroStrafe(1, -19, 0);
+                gyroDrive(1, 32, 0);
+                gyroTurn(1, 45);
+                //stack
             } else if (picture == "Red Rear Wall") {
 //                    gyroDrive();
             } else if (picture == "Blue Rear Wall") {
