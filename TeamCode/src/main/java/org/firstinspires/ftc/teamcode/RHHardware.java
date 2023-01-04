@@ -62,7 +62,7 @@ public class RHHardware
     public Servo cameraServo = null;
     public DcMotor arm = null;
     public Servo claw = null;
-    public CRServo armServo = null;
+    public CRServo slide = null;
 
 
 
@@ -87,9 +87,8 @@ public class RHHardware
         rightForwardDrive = hwMap.get(DcMotor.class, "rightForwardDrive");
         arm = hwMap.get(DcMotor.class, "arm");
         claw = hwMap.get(Servo.class, "claw");
-        armServo = hwMap.get(CRServo.class, "armServo");
+        slide = hwMap.get(CRServo.class, "armServo");
 //        cameraServo = hwMap.get(Servo.class, "cameraServo");
-
 
 
 
