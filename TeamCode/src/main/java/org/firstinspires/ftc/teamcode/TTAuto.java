@@ -102,7 +102,7 @@ public class TTAuto extends LinearOpMode {
 
     static final double COUNTS_PER_MOTOR_REV = 1120;    // eg: TETRIX Motor Encoder
     static final double COUNTS_PER_MOTOR_HEX = 288;
-    static final double DRIVE_GEAR_REDUCTION = 1.0;     // This is < 1.0 if geared UP
+    static final double DRIVE_GEAR_REDUCTION = 0.5;     // This is < 1.0 if geared UP
     static final double WHEEL_DIAMETER_INCHES = 3.0;     // For figuring circumference
     static final double SPOOL_DIAMETER_INCHES = 2.0;
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
@@ -233,7 +233,7 @@ public class TTAuto extends LinearOpMode {
         waitForStart();
 
 
-        robot.cameraServo.setPosition(.8); // turn left
+        robot.cameraServo.setPosition(.8); // turn  camera left
         sleep(1000);
         ArrayList<String> targetResults = findTarget();
         sleep(1000);
@@ -261,9 +261,13 @@ public class TTAuto extends LinearOpMode {
 
 
             if (picture == "Red Audience Wall") {
-                gyroStrafe(1, -19, 0);
-                gyroDrive(1, 32, 0);
-                gyroTurn(1, 45);
+                gyroStrafe(.5, -21, 0); //strafe right
+                gyroHold(1, 0, 1);
+                gyroDrive(0.01, -23, 0); //negative is forward
+                gyroTurn(0.3, -40);
+                gyroDrive(0.01, -5, -40); //negative is forward
+
+
                 //stack
             } else if (picture == "Red Rear Wall") {
 //                    gyroDrive();
@@ -277,29 +281,31 @@ public class TTAuto extends LinearOpMode {
         }
     }
 
-    public void gyroDrive(double speed,
-                          double distance,
-                          double angle) {
+    public void gyroDrive ( double speed,
+                            double distance,
+                            double angle) {
 
-        int newLeftTarget;
-        int newRightTarget;
-        int newRForwardTarget;
-        int newLForwardTarget;
-        int moveCounts;
-        double max;
-        double error;
-        double steer;
-        double leftSpeed;
-        double rightSpeed;
+        int     newLeftTarget;
+        int     newRightTarget;
+        int     newRForwardTarget;
+        int     newLForwardTarget;
+        int     moveCounts;
+        double  max;
+        double  error;
+        double  steer;
+        double  leftSpeed;
+        double  rightSpeed;
+        double  leftFSpeed;
+        double  rightFSpeed;
 
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
-            moveCounts = (int) (distance * COUNTS_PER_INCH);
-            newLeftTarget = robot.leftDrive.getCurrentPosition() + moveCounts;
+            moveCounts = (int)(distance * COUNTS_PER_INCH);
+            newLeftTarget = robot.leftDrive.getCurrentPosition() - moveCounts;
             newRightTarget = robot.rightDrive.getCurrentPosition() + moveCounts;
-            newRForwardTarget = robot.rightForwardDrive.getCurrentPosition() + moveCounts;
+            newRForwardTarget = robot.rightForwardDrive.getCurrentPosition() - moveCounts;
             newLForwardTarget = robot.leftForwardDrive.getCurrentPosition() + moveCounts;
 
             // Set Target and Turn On RUN_TO_POSITION
@@ -313,7 +319,7 @@ public class TTAuto extends LinearOpMode {
             robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             // start motion.
-            speed = Range.clip(Math.abs(speed), 0.0, 1.0);
+
             robot.leftDrive.setPower(speed);
             robot.rightDrive.setPower(speed);
             robot.leftForwardDrive.setPower(speed);
@@ -334,26 +340,32 @@ public class TTAuto extends LinearOpMode {
 
                 leftSpeed = speed - steer;
                 rightSpeed = speed + steer;
+                leftFSpeed = speed - steer;
+                rightFSpeed = speed + steer;
+
 
                 // Normalize speeds if either one exceeds +/- 1.0;
                 max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
-                if (max > 1.0) {
+                if (max > 1.0)
+                {
                     leftSpeed /= max;
                     rightSpeed /= max;
+                    leftFSpeed /= max;
+                    rightFSpeed /= max;
                 }
 
                 robot.leftDrive.setPower(leftSpeed);
                 robot.rightDrive.setPower(rightSpeed);
-                robot.leftForwardDrive.setPower(leftSpeed);
-                robot.rightForwardDrive.setPower(rightSpeed);
+                robot.leftForwardDrive.setPower(leftFSpeed);
+                robot.rightForwardDrive.setPower(rightFSpeed);
 
 
                 // Display drive status for the driver.
-                telemetry.addData("Err/St", "%5.1f/%5.1f", error, steer);
-                telemetry.addData("Target", "%7d:%7d", newLeftTarget, newRightTarget);
-                telemetry.addData("Actual", "%7d:%7d", robot.leftDrive.getCurrentPosition(),
+                telemetry.addData("Err/St",  "%5.1f/%5.1f",  error, steer);
+                telemetry.addData("Target",  "%7d:%7d",      newLeftTarget,  newRightTarget);
+                telemetry.addData("Actual",  "%7d:%7d",      robot.leftDrive.getCurrentPosition(),
                         robot.rightDrive.getCurrentPosition());
-                telemetry.addData("Speed", "%5.2f:%5.2f", leftSpeed, rightSpeed);
+                telemetry.addData("Speed",   "%5.2f:%5.2f",  leftSpeed, rightSpeed);
                 telemetry.update();
             }
 
@@ -402,6 +414,8 @@ public class TTAuto extends LinearOpMode {
         double steer;
         double leftSpeed;
         double rightSpeed;
+        double rightFSpeed;
+        double leftFSpeed;
 
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
@@ -447,18 +461,22 @@ public class TTAuto extends LinearOpMode {
 
                 leftSpeed = speed - steer;
                 rightSpeed = speed + steer;
+                leftFSpeed = speed - steer;
+                rightFSpeed = speed + steer;
 
                 // Normalize speeds if either one exceeds +/- 1.0;
                 max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
                 if (max > 1.0) {
                     leftSpeed /= max;
                     rightSpeed /= max;
+                    leftFSpeed /= max;
+                    rightFSpeed /= max;
                 }
 
                 robot.leftDrive.setPower(leftSpeed);
                 robot.rightDrive.setPower(rightSpeed);
-                robot.leftForwardDrive.setPower(leftSpeed);
-                robot.rightForwardDrive.setPower(rightSpeed);
+                robot.leftForwardDrive.setPower(leftFSpeed);
+                robot.rightForwardDrive.setPower(rightFSpeed);
             }
 
             // Stop all motion;
