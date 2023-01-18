@@ -56,7 +56,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,8 +92,8 @@ import java.util.List;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name = "TTAuto", group = "Pushbot")
-public class TTAuto extends LinearOpMode {
+@Autonomous(name = "BHAuto", group = "Pushbot")
+public class BHAuto extends LinearOpMode {
 
 
     /* Declare OpMode members. */
@@ -220,7 +219,7 @@ public class TTAuto extends LinearOpMode {
             // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
             // should be set to the value of the images used to create the TensorFlow Object Detection model
             // (typically 16/9).
-            //tfod.setZoom(1.0, 16.0/9.0);
+            tfod.setZoom(1.0, 16.0/9.0);
         }
 
 
@@ -255,58 +254,12 @@ public class TTAuto extends LinearOpMode {
 
 
         targets.activate();
-        if (tfod != null) {
-
-            // getUpdatedRecognitions() will return null if no new information is available since
-            // the last time that call was made.
-            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-            if (updatedRecognitions != null) {
-
-
-                // step through the list of recognitions and display image position/size information for each one
-                // Note: "Image number" refers to the randomized image orientation/number
-                for (Recognition recognition : updatedRecognitions) {
-                    double col = (recognition.getLeft() + recognition.getRight()) / 2;
-                    double row = (recognition.getTop() + recognition.getBottom()) / 2;
-                    double width = Math.abs(recognition.getRight() - recognition.getLeft());
-                    double height = Math.abs(recognition.getTop() - recognition.getBottom());
-
-//                    telemetry.addData("", " ");
-//                    telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
-
-
-
-                    if (recognition.getLabel().contains("1")) {
-                        parkingPosition = 1;
-                        telemetry.addLine("1");
-                        telemetry.update();
-                    }
-
-
-                    else if (recognition.getLabel().contains("2")) {
-                        parkingPosition = 2;
-                        telemetry.addLine("2");
-                        telemetry.update();
-                    }
-
-                    else if (recognition.getLabel().contains("3")) {
-                        parkingPosition = 3;
-                        telemetry.addLine("3");
-                        telemetry.update();
-                    }
-                    else {
-                        telemetry.addLine("Could not find where to park");
-                        telemetry.update();
-                    }
-                }
-
-            }
-        }
 
         telemetry.addLine("Init Finished");
         telemetry.update();
         waitForStart();
 
+
         if (tfod != null) {
 
             // getUpdatedRecognitions() will return null if no new information is available since
@@ -335,26 +288,21 @@ public class TTAuto extends LinearOpMode {
                     }
 
 
-                    else if (recognition.getLabel().contains("2")) {
+                    if (recognition.getLabel().contains("2")) {
                         parkingPosition = 2;
                         telemetry.addLine("2");
                         telemetry.update();
                     }
 
-                    else if (recognition.getLabel().contains("3")) {
+                    if (recognition.getLabel().contains("3")) {
                         parkingPosition = 3;
                         telemetry.addLine("3");
-                        telemetry.update();
-                    }
-                    else {
-                        telemetry.addLine("Could not find where to park");
                         telemetry.update();
                     }
                 }
                 telemetry.update();
             }
         }
-
         robot.cameraServo.setPosition(.8); // turn  camera left
         sleep(1000);
         ArrayList<String> targetResults = findTarget();
@@ -383,34 +331,33 @@ public class TTAuto extends LinearOpMode {
 
 
             if (picture == "Red Audience Wall") {
+                telemetry.addLine(String.valueOf(parkingPosition));
+                telemetry.update();
                 gyroStrafe(.5, -21, 0); //strafe right
                 gyroHold(1, 0, 1);
                 gyroDrive(0.01, -23, 0); //negative is forward
                 gyroTurn(0.3, -40);
                 gyroDrive(0.01, -5, -40); //negative is forward
-                sleep(1000);
-
-                //stack
 
                 if(parkingPosition == 1) {
-                    gyroDrive(.5, 12, -1); //postive is backwards
+                    gyroDrive(.5, -3, 0);
                     gyroTurn(.5, 0);
 
                     telemetry.addLine("Parked in position 1");
                 }
                 if(parkingPosition == 2) {
-                    gyroDrive(.5, 12, -1);
-                    gyroTurn(.5,-0);
-                    gyroStrafe(.5, 30, 0);
+                    gyroTurn(.5,0);
+                    gyroStrafe(.5, 24, 0);
                     telemetry.addLine("Parked in position 2");
                 }
                 if(parkingPosition == 3) {
-                    gyroDrive(.5, 12, -1);
-                    gyroTurn(.5, -0);
-                    gyroStrafe(.5, 60
-                            , 0);
+                    gyroTurn(.5, 0);
+                    gyroStrafe(.5, 48, 0);
                     telemetry.addLine("Parked in position 3");
                 }
+
+
+                //stack
             } else if (picture == "Red Rear Wall") {
 //                    gyroDrive();
             } else if (picture == "Blue Rear Wall") {
