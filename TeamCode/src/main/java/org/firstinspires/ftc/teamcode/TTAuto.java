@@ -53,6 +53,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -145,6 +147,14 @@ public class TTAuto extends LinearOpMode {
     String targetDistance = "No Target Identified";
 
     ArrayList<String> targetArrayList = new ArrayList<>();
+    private static final String TFOD_MODEL_ASSET = "PowerPlay.tflite";
+    private TFObjectDetector tfod;
+
+    private static final String[] LABELS = {
+            "1 Bolt",
+            "2 Bulb",
+            "3 Panel"
+    };
 
     private boolean targetVisible = false;
 
@@ -183,6 +193,7 @@ public class TTAuto extends LinearOpMode {
         // sets are stored in the 'assets' part of our application.
         targets = this.vuforia.loadTrackablesFromAsset("PowerPlay");
 
+
         // For convenience, gather together all the trackable objects in one easily-iterable collection */
 
         allTrackables.addAll(targets);
@@ -195,6 +206,21 @@ public class TTAuto extends LinearOpMode {
         identifyTarget(1, "Red Rear Wall", halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, -90);
         identifyTarget(2, "Blue Audience Wall", -halfField, oneAndHalfTile, mmTargetHeight, 90, 0, 90);
         identifyTarget(3, "Blue Rear Wall", halfField, oneAndHalfTile, mmTargetHeight, 90, 0, -90);
+
+
+        initTfod();
+        if (tfod != null) {
+            tfod.activate();
+
+            // The TensorFlow software will scale the input images from the camera to a lower resolution.
+            // This can result in lower detection accuracy at longer distances (> 55cm or 22").
+            // If your target is at distance greater than 50 cm (20") you can increase the magnification value
+            // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
+            // should be set to the value of the images used to create the TensorFlow Object Detection model
+            // (typically 16/9).
+            tfod.setZoom(1.0, 16.0/9.0);
+        }
+
 
         // Name and locate each trackable object
 
@@ -231,6 +257,32 @@ public class TTAuto extends LinearOpMode {
         telemetry.addLine("Init Finished");
         telemetry.update();
         waitForStart();
+
+        if (tfod != null) {
+            // getUpdatedRecognitions() will return null if no new information is available since
+            // the last time that call was made.
+            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+            if (updatedRecognitions != null) {
+                telemetry.addData("# Objects Detected", updatedRecognitions.size());
+
+                // step through the list of recognitions and display image position/size information for each one
+                // Note: "Image number" refers to the randomized image orientation/number
+                for (Recognition recognition : updatedRecognitions) {
+                    double col = (recognition.getLeft() + recognition.getRight()) / 2 ;
+                    double row = (recognition.getTop()  + recognition.getBottom()) / 2 ;
+                    double width  = Math.abs(recognition.getRight() - recognition.getLeft()) ;
+                    double height = Math.abs(recognition.getTop()  - recognition.getBottom()) ;
+
+                    telemetry.addData(""," ");
+                    telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100 );
+                    telemetry.addData("- Position (Row/Col)","%.0f / %.0f", row, col);
+                    telemetry.addData("- Size (Width/Height)","%.0f / %.0f", width, height);
+
+                    //if name = name
+                }
+                telemetry.update();
+            }
+        }
 
 
         robot.cameraServo.setPosition(.8); // turn  camera left
@@ -645,5 +697,20 @@ public class TTAuto extends LinearOpMode {
         }
 
         return targetArrayList;
+    }
+
+    private void initTfod() {
+        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
+                "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
+        tfodParameters.minResultConfidence = 0.75f;
+        tfodParameters.isModelTensorFlow2 = true;
+        tfodParameters.inputSize = 300;
+        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+
+        // Use loadModelFromAsset() if the TF Model is built in as an asset by Android Studio
+        // Use loadModelFromFile() if you have downloaded a custom team model to the Robot Controller's FLASH.
+        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
+        // tfod.loadModelFromFile(TFOD_MODEL_FILE, LABELS);
     }
 }
