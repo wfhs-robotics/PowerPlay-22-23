@@ -100,6 +100,7 @@ public class BHOpMode extends LinearOpMode {
             double drive = gamepad1.left_stick_x;
             double strafe = gamepad1.left_stick_y;
             double twist = 0;
+            double slide = -gamepad2.left_stick_y;
             double normalTurn= gamepad1.right_stick_x;
 
 
@@ -107,6 +108,7 @@ public class BHOpMode extends LinearOpMode {
             double rightPower;
             double leftForwardPower;
             double rightForwardPower;
+            double slidePower;
 
 
 
@@ -217,7 +219,8 @@ public class BHOpMode extends LinearOpMode {
 
 
                 }
-
+                slidePower = Range.clip(slide, -1,1);
+                robot.slide.setPower(slidePower);
             }
 
         }

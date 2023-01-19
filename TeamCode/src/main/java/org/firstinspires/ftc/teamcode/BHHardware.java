@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -59,6 +60,7 @@ public class BHHardware
     public DcMotor  leftForwardDrive    = null;
     public DcMotor  rightForwardDrive    = null;
     public Servo cameraServo = null;
+    public CRServo slide = null;
 
 
 
@@ -82,6 +84,7 @@ public class BHHardware
         leftForwardDrive    = hwMap.get(DcMotor.class, "leftForwardDrive");
         rightForwardDrive = hwMap.get(DcMotor.class, "rightForwardDrive");
         cameraServo = hwMap.get(Servo.class, "cameraServo");
+        slide = hwMap.get(CRServo.class, "slide");
 
 
 
