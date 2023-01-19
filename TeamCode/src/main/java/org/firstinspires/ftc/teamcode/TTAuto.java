@@ -391,6 +391,7 @@ public class TTAuto extends LinearOpMode {
                 sleep(1000);
 
                 moveSlide(1, 38, 2);
+                gyroDrive(0.2, -4, 0);
                 robot.pickup.setPosition(0);
 
 
@@ -422,6 +423,7 @@ public class TTAuto extends LinearOpMode {
                 gyroDrive(.1,  -5, 0); //negative is forward
 
                 moveSlide(1, 38, 2);
+                gyroDrive(0.2, -4, 0);
                 robot.pickup.setPosition(0);
 
                 //back away from pole and turn to 0
@@ -455,6 +457,7 @@ public class TTAuto extends LinearOpMode {
                 sleep(1000);
 
                 moveSlide(1, 38, 2);
+                gyroDrive(0.2, -4, 0);
                 robot.pickup.setPosition(0);
 
                 if(parkingPosition == 1) {
@@ -485,6 +488,7 @@ public class TTAuto extends LinearOpMode {
                 gyroDrive(.1,  -5, 0); //negative is forward
 
                 moveSlide(1, 38, 2);
+                gyroDrive(0.2, -4, 0);
                 robot.pickup.setPosition(0);
 
                 gyroDrive(.5, 12, -1); //postive is backwards
