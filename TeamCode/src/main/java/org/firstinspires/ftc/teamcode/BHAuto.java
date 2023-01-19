@@ -97,7 +97,7 @@ public class BHAuto extends LinearOpMode {
 
 
     /* Declare OpMode members. */
-    TTHardware robot = new TTHardware();
+    BHHardware robot = new BHHardware();
 
     private ElapsedTime runtime = new ElapsedTime();// Use a Pushbot's hardware
 
@@ -331,39 +331,76 @@ public class BHAuto extends LinearOpMode {
 
 
             if (picture == "Red Audience Wall") {
-                telemetry.addLine(String.valueOf(parkingPosition));
-                telemetry.update();
-                gyroStrafe(.5, -21, 0); //strafe right
+                gyroDrive(.5, 20, 0);
                 gyroHold(1, 0, 1);
-                gyroDrive(0.01, -23, 0); //negative is forward
-                gyroTurn(0.3, -40);
-                gyroDrive(0.01, -5, -40); //negative is forward
+
 
                 if(parkingPosition == 1) {
-                    gyroDrive(.5, -3, 0);
-                    gyroTurn(.5, 0);
+                    gyroStrafe(1, -20, 0);
 
                     telemetry.addLine("Parked in position 1");
                 }
                 if(parkingPosition == 2) {
-                    gyroTurn(.5,0);
-                    gyroStrafe(.5, 24, 0);
                     telemetry.addLine("Parked in position 2");
                 }
                 if(parkingPosition == 3) {
-                    gyroTurn(.5, 0);
-                    gyroStrafe(.5, 48, 0);
+                    gyroStrafe(1, 20, 0);
                     telemetry.addLine("Parked in position 3");
                 }
 
 
                 //stack
             } else if (picture == "Red Rear Wall") {
-//                    gyroDrive();
+                gyroDrive(.5, 20, 0);
+                gyroHold(1, 0, 1);
+
+
+                if(parkingPosition == 1) {
+                    gyroStrafe(1, -20, 0);
+
+                    telemetry.addLine("Parked in position 1");
+                }
+                if(parkingPosition == 2) {
+                    telemetry.addLine("Parked in position 2");
+                }
+                if(parkingPosition == 3) {
+                    gyroStrafe(1, 20, 0);
+                    telemetry.addLine("Parked in position 3");
+                }
             } else if (picture == "Blue Rear Wall") {
-//                    gyroDrive();
+                gyroDrive(.5, 20, 0);
+                gyroHold(1, 0, 1);
+
+
+                if(parkingPosition == 1) {
+                    gyroStrafe(1, -20, 0);
+
+                    telemetry.addLine("Parked in position 1");
+                }
+                if(parkingPosition == 2) {
+                    telemetry.addLine("Parked in position 2");
+                }
+                if(parkingPosition == 3) {
+                    gyroStrafe(1, 20, 0);
+                    telemetry.addLine("Parked in position 3");
+                }
             } else if (picture == "Blue Audience Wall") {
-//                    gyroDrive();
+                gyroDrive(.5, 20, 0);
+                gyroHold(1, 0, 1);
+
+
+                if(parkingPosition == 1) {
+                    gyroStrafe(1, -20, 0);
+
+                    telemetry.addLine("Parked in position 1");
+                }
+                if(parkingPosition == 2) {
+                    telemetry.addLine("Parked in position 2");
+                }
+                if(parkingPosition == 3) {
+                    gyroStrafe(1, 20, 0);
+                    telemetry.addLine("Parked in position 3");
+                }
             }
 
 
