@@ -36,6 +36,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -356,6 +357,7 @@ public class TTAuto extends LinearOpMode {
         }
 
         robot.cameraServo.setPosition(.8); // turn  camera left
+        moveSlide(1, 38, 0);
         sleep(1000);
         ArrayList<String> targetResults = findTarget();
         sleep(1000);
@@ -390,8 +392,8 @@ public class TTAuto extends LinearOpMode {
                 gyroDrive(0.1, -5, -40); //negative is forward
                 sleep(1000);
 
-                moveSlide(1, 38, 2);
-                gyroDrive(0.2, -4, 0);
+                moveSlide(1, 140, 2);
+                gyroDrive(0.2, -10, 0);
                 robot.pickup.setPosition(0);
 
 
@@ -422,7 +424,7 @@ public class TTAuto extends LinearOpMode {
                 gyroTurn(.3, 40);
                 gyroDrive(.1,  -5, 0); //negative is forward
 
-                moveSlide(1, 38, 2);
+                moveSlide(1, 80, 2);
                 gyroDrive(0.2, -4, 0);
                 robot.pickup.setPosition(0);
 
@@ -456,7 +458,7 @@ public class TTAuto extends LinearOpMode {
                 gyroDrive(0.1, -5, -40); //negative is forward
                 sleep(1000);
 
-                moveSlide(1, 38, 2);
+                moveSlide(1, 80, 2);
                 gyroDrive(0.2, -4, 0);
                 robot.pickup.setPosition(0);
 
@@ -487,7 +489,7 @@ public class TTAuto extends LinearOpMode {
                 gyroTurn(.3, 40);
                 gyroDrive(.1,  -5, 0); //negative is forward
 
-                moveSlide(1, 38, 2);
+                moveSlide(1, 80, 2);
                 gyroDrive(0.2, -4, 0);
                 robot.pickup.setPosition(0);
 
