@@ -93,7 +93,7 @@ import java.util.List;
  * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
-@Disabled
+
 @Autonomous(name = "TTAuto", group = "Pushbot")
 public class TTAuto extends LinearOpMode {
 
@@ -357,6 +357,7 @@ public class TTAuto extends LinearOpMode {
         }
 
         robot.cameraServo.setPosition(.8); // turn  camera left
+        moveSlide(1, 38, 0);
         sleep(1000);
         ArrayList<String> targetResults = findTarget();
         sleep(1000);
@@ -391,8 +392,8 @@ public class TTAuto extends LinearOpMode {
                 gyroDrive(0.1, -5, -40); //negative is forward
                 sleep(1000);
 
-                moveSlide(1, 38, 2);
-                gyroDrive(0.2, -4, 0);
+                moveSlide(1, 140, 2);
+                gyroDrive(0.2, -10, 0);
                 robot.pickup.setPosition(0);
 
 
@@ -423,7 +424,7 @@ public class TTAuto extends LinearOpMode {
                 gyroTurn(.3, 40);
                 gyroDrive(.1,  -5, 0); //negative is forward
 
-                moveSlide(1, 38, 2);
+                moveSlide(1, 80, 2);
                 gyroDrive(0.2, -4, 0);
                 robot.pickup.setPosition(0);
 
@@ -457,7 +458,7 @@ public class TTAuto extends LinearOpMode {
                 gyroDrive(0.1, -5, -40); //negative is forward
                 sleep(1000);
 
-                moveSlide(1, 38, 2);
+                moveSlide(1, 80, 2);
                 gyroDrive(0.2, -4, 0);
                 robot.pickup.setPosition(0);
 
@@ -488,7 +489,7 @@ public class TTAuto extends LinearOpMode {
                 gyroTurn(.3, 40);
                 gyroDrive(.1,  -5, 0); //negative is forward
 
-                moveSlide(1, 38, 2);
+                moveSlide(1, 80, 2);
                 gyroDrive(0.2, -4, 0);
                 robot.pickup.setPosition(0);
 
