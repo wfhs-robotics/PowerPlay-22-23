@@ -88,7 +88,7 @@ public class RHHardware
         arm = hwMap.get(DcMotor.class, "arm");
         claw = hwMap.get(Servo.class, "claw");
         slide = hwMap.get(CRServo.class, "armServo");
-//        cameraServo = hwMap.get(Servo.class, "cameraServo");
+        cameraServo = hwMap.get(Servo.class, "cameraServo");
 
 
 
@@ -102,6 +102,7 @@ public class RHHardware
         rightDrive.setPower(0);
         leftForwardDrive.setPower(0);
         rightForwardDrive.setPower(0);
+        cameraServo.setPosition(0);
 //        slide.setPower(0);
 
 
