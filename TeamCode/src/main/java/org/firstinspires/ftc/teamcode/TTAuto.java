@@ -363,7 +363,7 @@ public class TTAuto extends LinearOpMode {
             telemetry.addLine("Couldn't Find Photo, Looking to the right");
             telemetry.update();
 
-
+            robot.pickup.setPosition(.22); //open paddles
             robot.cameraServo.setPosition(.2); // Turn right
             sleep(10000);
             targetResults = findTarget();
@@ -387,10 +387,12 @@ public class TTAuto extends LinearOpMode {
                 gyroHold(1, 0, 1);
                 gyroDrive(0.01, -23, 0); //negative is forward
                 gyroTurn(0.3, -40);
-                gyroDrive(0.01, -5, -40); //negative is forward
+                gyroDrive(0.1, -5, -40); //negative is forward
                 sleep(1000);
 
-                //stack
+                moveSlide(1, 38, 2);
+                robot.pickup.setPosition(0);
+
 
                 if(parkingPosition == 1) {
                     gyroDrive(.5, 12, -1); //postive is backwards
@@ -401,22 +403,106 @@ public class TTAuto extends LinearOpMode {
                 if(parkingPosition == 2) {
                     gyroDrive(.5, 12, -1);
                     gyroTurn(.5,-0);
-                    gyroStrafe(.5, 30, 0);
+                    gyroStrafe(.5, 30, 0); //strafe left
                     telemetry.addLine("Parked in position 2");
                 }
                 if(parkingPosition == 3) {
                     gyroDrive(.5, 12, -1);
                     gyroTurn(.5, -0);
-                    gyroStrafe(.5, 60
-                            , 0);
+                    gyroStrafe(.5, 60, 0); //strafe left
                     telemetry.addLine("Parked in position 3");
                 }
+
+
             } else if (picture == "Red Rear Wall") {
-//                    gyroDrive();
-            } else if (picture == "Blue Rear Wall") {
-//                    gyroDrive();
-            } else if (picture == "Blue Audience Wall") {
-//                    gyroDrive();
+                gyroStrafe(.5, 21, 0); // strafe left
+                gyroHold(1, 0, 1);
+                gyroDrive(0.01, -23, 0); //negative is forward
+                gyroTurn(.3, 40);
+                gyroDrive(.1,  -5, 0); //negative is forward
+
+                moveSlide(1, 38, 2);
+                robot.pickup.setPosition(0);
+
+                //back away from pole and turn to 0
+                gyroDrive(.5, 12, -1); //postive is backwards
+                gyroTurn(.5, 0);
+
+                if(parkingPosition == 1) {
+                    gyroStrafe(.5, -60, 0);
+                    telemetry.addLine("Parked in position 1");
+                }
+                if(parkingPosition == 2) {
+                    gyroStrafe(.5, -30, 0);
+                    telemetry.addLine("Parked in position 2");
+                }
+                if(parkingPosition == 3) {
+                    telemetry.addLine("Parked in position 3");
+
+                }
+                sleep(2000);
+
+            }
+
+
+            else if (picture == "Blue Rear Wall") {
+                //Drive to pole
+                gyroStrafe(.5, -21, 0); //strafe right
+                gyroHold(1, 0, 1);
+                gyroDrive(0.01, -23, 0); //negative is forward
+                gyroTurn(0.3, -40);
+                gyroDrive(0.1, -5, -40); //negative is forward
+                sleep(1000);
+
+                moveSlide(1, 38, 2);
+                robot.pickup.setPosition(0);
+
+                if(parkingPosition == 1) {
+                    gyroDrive(.5, 12, -1); //postive is backwards
+                    gyroTurn(.5, 0);
+
+                    telemetry.addLine("Parked in position 1");
+                }
+                if(parkingPosition == 2) {
+                    gyroDrive(.5, 12, -1);
+                    gyroTurn(.5,-0);
+                    gyroStrafe(.5, 30, 0); //strafe left
+                    telemetry.addLine("Parked in position 2");
+                }
+                if(parkingPosition == 3) {
+                    gyroDrive(.5, 12, -1);
+                    gyroTurn(.5, -0);
+                    gyroStrafe(.5, 60, 0); //strafe left
+                    telemetry.addLine("Parked in position 3");
+                }
+            }
+
+            else if (picture == "Blue Audience Wall") {
+                gyroStrafe(.5, 21, 0); // strafe left
+                gyroHold(1, 0, 1);
+                gyroDrive(0.01, -23, 0); //negative is forward
+                gyroTurn(.3, 40);
+                gyroDrive(.1,  -5, 0); //negative is forward
+
+                moveSlide(1, 38, 2);
+                robot.pickup.setPosition(0);
+
+                gyroDrive(.5, 12, -1); //postive is backwards
+                gyroTurn(.5, 0);
+
+                if(parkingPosition == 1) {
+                    gyroStrafe(.5, -60, 0);
+                    telemetry.addLine("Parked in position 1");
+                }
+                if(parkingPosition == 2) {
+                    gyroStrafe(.5, -30, 0);
+                    telemetry.addLine("Parked in position 2");
+                }
+                if(parkingPosition == 3) {
+                    telemetry.addLine("Parked in position 3");
+
+                }
+                sleep(2000);
             }
 
 
@@ -665,6 +751,54 @@ public class TTAuto extends LinearOpMode {
         robot.leftForwardDrive.setPower(0);
         robot.rightForwardDrive.setPower(0);
     }
+
+    public void moveSlide(double speed, double slideInches, double timeoutS) {
+        int spoolTarget;
+
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+
+            // Determine new target position, and pass to motor controller
+            spoolTarget = robot.slide.getCurrentPosition() + (int)(slideInches * COUNTS_PER_INCH_SPOOL);
+            robot.slide.setTargetPosition(spoolTarget);
+
+
+            // Turn On RUN_TO_POSITION
+            robot.slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+            robot.slide.setPower(Math.abs(speed));
+
+
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+            // its target position, the motion will stop.  This is "safer" in the event that the robot will
+            // always end the motion as soon as possible.
+            // However, if you require that BOTH motors have finished their moves before the robot continues
+            // onto the next step, use (isBusy() || isBusy()) in the loop test.
+            while (opModeIsActive() &&
+                    (runtime.seconds() < timeoutS) &&
+                    (robot.slide.isBusy())) {
+
+                // Display it for the driver.
+            /*    telemetry.addData("Path1",  "Running to %7d :%7d", spoolTarget);
+                telemetry.addData("Path2",  "Running at %7d :%7d",
+                        robot.spool.getCurrentPosition());
+           */
+            }
+
+            // Stop all motion;
+            robot.slide.setPower(0);
+            robot.slide.setPower(0);
+
+            // Turn off RUN_TO_POSITION
+            robot.slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
+            sleep(250);   // optional pause after each move
+        }}
 
 
     /**

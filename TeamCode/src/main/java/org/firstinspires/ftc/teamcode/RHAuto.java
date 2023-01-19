@@ -92,12 +92,12 @@ import java.util.List;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name = "BHAuto", group = "Pushbot")
-public class BHAuto extends LinearOpMode {
+@Autonomous(name = "RHAuto", group = "Pushbot")
+public class RHAuto extends LinearOpMode {
 
 
     /* Declare OpMode members. */
-    BHHardware robot = new BHHardware();
+    RHHardware robot = new RHHardware();
 
     private ElapsedTime runtime = new ElapsedTime();// Use a Pushbot's hardware
 

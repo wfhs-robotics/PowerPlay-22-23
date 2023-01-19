@@ -58,6 +58,7 @@ public class BHHardware
     public DcMotor  rightDrive  = null;
     public DcMotor  leftForwardDrive    = null;
     public DcMotor  rightForwardDrive    = null;
+    public Servo cameraServo = null;
 
 
 
@@ -80,7 +81,7 @@ public class BHHardware
         rightDrive = hwMap.get(DcMotor.class, "rightDrive");
         leftForwardDrive    = hwMap.get(DcMotor.class, "leftForwardDrive");
         rightForwardDrive = hwMap.get(DcMotor.class, "rightForwardDrive");
-//        cameraServo = hwMap.get(Servo.class, "cameraServo");
+        cameraServo = hwMap.get(Servo.class, "cameraServo");
 
 
 
