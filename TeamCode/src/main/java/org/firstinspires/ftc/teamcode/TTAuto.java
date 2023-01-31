@@ -170,8 +170,7 @@ public class TTAuto extends LinearOpMode {
         imu.initialize(parameters);
 
 
-
-        angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
 
@@ -254,7 +253,6 @@ public class TTAuto extends LinearOpMode {
         robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
-
         targets.activate();
         if (tfod != null) {
 
@@ -276,26 +274,19 @@ public class TTAuto extends LinearOpMode {
 //                    telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
 
 
-
                     if (recognition.getLabel().contains("1")) {
                         parkingPosition = 1;
                         telemetry.addLine("1");
                         telemetry.update();
-                    }
-
-
-                    else if (recognition.getLabel().contains("2")) {
+                    } else if (recognition.getLabel().contains("2")) {
                         parkingPosition = 2;
                         telemetry.addLine("2");
                         telemetry.update();
-                    }
-
-                    else if (recognition.getLabel().contains("3")) {
+                    } else if (recognition.getLabel().contains("3")) {
                         parkingPosition = 3;
                         telemetry.addLine("3");
                         telemetry.update();
-                    }
-                    else {
+                    } else {
                         telemetry.addLine("Could not find where to park");
                         telemetry.update();
                     }
@@ -328,26 +319,19 @@ public class TTAuto extends LinearOpMode {
 //                    telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
 
 
-
                     if (recognition.getLabel().contains("1")) {
                         parkingPosition = 1;
                         telemetry.addLine("1");
                         telemetry.update();
-                    }
-
-
-                    else if (recognition.getLabel().contains("2")) {
+                    } else if (recognition.getLabel().contains("2")) {
                         parkingPosition = 2;
                         telemetry.addLine("2");
                         telemetry.update();
-                    }
-
-                    else if (recognition.getLabel().contains("3")) {
+                    } else if (recognition.getLabel().contains("3")) {
                         parkingPosition = 3;
                         telemetry.addLine("3");
                         telemetry.update();
-                    }
-                    else {
+                    } else {
                         telemetry.addLine("Could not find where to park");
                         telemetry.update();
                     }
@@ -356,19 +340,23 @@ public class TTAuto extends LinearOpMode {
             }
         }
 
-        robot.cameraServo.setPosition(.8); // turn  camera left
-        moveSlide(1, 38, 0);
-        sleep(1000);
+        robot.cameraServo.setPosition(.8); // turn  camera
+        robot.pickup.setPosition(0);
+        sleep(250);
+        moveSlide(1, 38, 1);
+        sleep(2000);
         ArrayList<String> targetResults = findTarget();
         sleep(1000);
         if (targetResults.isEmpty()) {
             telemetry.addLine("Couldn't Find Photo, Looking to the right");
             telemetry.update();
 
-            robot.pickup.setPosition(.22); //open paddles
             robot.cameraServo.setPosition(.2); // Turn right
-            sleep(10000);
+            sleep(1000);
             targetResults = findTarget();
+            sleep(1000);
+            String picture = targetResults.get(0);
+            runAuto(picture);
 
             if (targetResults.isEmpty()) {
                 telemetry.addLine("Im lost. Parking now");
@@ -381,139 +369,144 @@ public class TTAuto extends LinearOpMode {
             String picture = targetResults.get(0);
             telemetry.addLine(targetResults.get(0));
             telemetry.update();
-
-
-
-            if (picture == "Red Audience Wall") {
-                gyroStrafe(.5, -21, 0); //strafe right
-                gyroHold(1, 0, 1);
-                gyroDrive(0.01, -23, 0); //negative is forward
-                gyroTurn(0.3, -40);
-                gyroDrive(0.1, -5, -40); //negative is forward
-                sleep(1000);
-
-                moveSlide(1, 140, 2);
-                gyroDrive(0.2, -10, 0);
-                robot.pickup.setPosition(0);
-
-
-                if(parkingPosition == 1) {
-                    gyroDrive(.5, 12, -1); //postive is backwards
-                    gyroTurn(.5, 0);
-
-                    telemetry.addLine("Parked in position 1");
-                }
-                if(parkingPosition == 2) {
-                    gyroDrive(.5, 12, -1);
-                    gyroTurn(.5,-0);
-                    gyroStrafe(.5, 30, 0); //strafe left
-                    telemetry.addLine("Parked in position 2");
-                }
-                if(parkingPosition == 3) {
-                    gyroDrive(.5, 12, -1);
-                    gyroTurn(.5, -0);
-                    gyroStrafe(.5, 60, 0); //strafe left
-                    telemetry.addLine("Parked in position 3");
-                }
-
-
-            } else if (picture == "Red Rear Wall") {
-                gyroStrafe(.5, 21, 0); // strafe left
-                gyroHold(1, 0, 1);
-                gyroDrive(0.01, -23, 0); //negative is forward
-                gyroTurn(.3, 40);
-                gyroDrive(.1,  -5, 0); //negative is forward
-
-                moveSlide(1, 80, 2);
-                gyroDrive(0.2, -4, 0);
-                robot.pickup.setPosition(0);
-
-                //back away from pole and turn to 0
-                gyroDrive(.5, 12, -1); //postive is backwards
-                gyroTurn(.5, 0);
-
-                if(parkingPosition == 1) {
-                    gyroStrafe(.5, -60, 0);
-                    telemetry.addLine("Parked in position 1");
-                }
-                if(parkingPosition == 2) {
-                    gyroStrafe(.5, -30, 0);
-                    telemetry.addLine("Parked in position 2");
-                }
-                if(parkingPosition == 3) {
-                    telemetry.addLine("Parked in position 3");
-
-                }
-                sleep(2000);
-
-            }
-
-
-            else if (picture == "Blue Rear Wall") {
-                //Drive to pole
-                gyroStrafe(.5, -21, 0); //strafe right
-                gyroHold(1, 0, 1);
-                gyroDrive(0.01, -23, 0); //negative is forward
-                gyroTurn(0.3, -40);
-                gyroDrive(0.1, -5, -40); //negative is forward
-                sleep(1000);
-
-                moveSlide(1, 80, 2);
-                gyroDrive(0.2, -4, 0);
-                robot.pickup.setPosition(0);
-
-                if(parkingPosition == 1) {
-                    gyroDrive(.5, 12, -1); //postive is backwards
-                    gyroTurn(.5, 0);
-
-                    telemetry.addLine("Parked in position 1");
-                }
-                if(parkingPosition == 2) {
-                    gyroDrive(.5, 12, -1);
-                    gyroTurn(.5,-0);
-                    gyroStrafe(.5, 30, 0); //strafe left
-                    telemetry.addLine("Parked in position 2");
-                }
-                if(parkingPosition == 3) {
-                    gyroDrive(.5, 12, -1);
-                    gyroTurn(.5, -0);
-                    gyroStrafe(.5, 60, 0); //strafe left
-                    telemetry.addLine("Parked in position 3");
-                }
-            }
-
-            else if (picture == "Blue Audience Wall") {
-                gyroStrafe(.5, 21, 0); // strafe left
-                gyroHold(1, 0, 1);
-                gyroDrive(0.01, -23, 0); //negative is forward
-                gyroTurn(.3, 40);
-                gyroDrive(.1,  -5, 0); //negative is forward
-
-                moveSlide(1, 80, 2);
-                gyroDrive(0.2, -4, 0);
-                robot.pickup.setPosition(0);
-
-                gyroDrive(.5, 12, -1); //postive is backwards
-                gyroTurn(.5, 0);
-
-                if(parkingPosition == 1) {
-                    gyroStrafe(.5, -60, 0);
-                    telemetry.addLine("Parked in position 1");
-                }
-                if(parkingPosition == 2) {
-                    gyroStrafe(.5, -30, 0);
-                    telemetry.addLine("Parked in position 2");
-                }
-                if(parkingPosition == 3) {
-                    telemetry.addLine("Parked in position 3");
-
-                }
-                sleep(2000);
-            }
-
-
+            runAuto(picture);
         }
     }
+
+    public void runAuto(String picture) {
+        if (picture == "Red Audience Wall") {
+            gyroStrafe(.5, -21, 0); //strafe right
+            gyroHold(1, 0, 1);
+            gyroDrive(0.01, -23, 0); //negative is forward
+            gyroTurn(0.3, -40);
+            gyroDrive(0.1, -6, -40); //negative is forward drive to pole
+            sleep(1000);
+
+            moveSlide(1, 180, 3);
+            gyroDrive(0.01, -4, 0);
+            moveSlide(1, 180, 1);
+            sleep(250);
+            robot.pickup.setPosition(.22);
+            sleep(250);
+
+
+            if(parkingPosition == 1) {
+                gyroDrive(.2, 15, -1); //postive is backwards
+                gyroTurn(.5, 0);
+
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                gyroDrive(.5, 15, -1);
+                gyroTurn(.5,0);
+                gyroStrafe(.2, 30, 0); //strafe left
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                gyroDrive(.5, 15, -1);
+                gyroTurn(.5, -1);
+                gyroStrafe(.2, 60, 0); //strafe left
+                telemetry.addLine("Parked in position 3");
+            }
+
+
+        } else if (picture == "Red Rear Wall") {
+            gyroStrafe(.5, 21, 0); // strafe left
+            gyroHold(1, 0, 1);
+            gyroDrive(0.01, -23, 0); //negative is forward
+            gyroTurn(.3, 40);
+            gyroDrive(.1,  -5, 0); //negative is forward
+
+            moveSlide(1, 80, 2);
+            gyroDrive(0.01, -4, 0);
+            robot.pickup.setPosition(0);
+
+            //back away from pole and turn to 0
+            gyroDrive(.5, 12, -1); //postive is backwards
+            gyroTurn(.5, 0);
+
+            if(parkingPosition == 1) {
+                gyroStrafe(.5, -60, 0);
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                gyroStrafe(.5, -30, 0);
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                telemetry.addLine("Parked in position 3");
+
+            }
+            sleep(2000);
+
+        }
+
+
+        else if (picture == "Blue Rear Wall") {
+            //Drive to pole
+            gyroStrafe(.5, -21, 0); //strafe right
+            gyroHold(1, 0, 1);
+            gyroDrive(0.01, -23, 0); //negative is forward
+//            gyroTurn(0.3, -40);
+//            gyroDrive(0.1, -5, -40); //negative is forward
+//            sleep(1000);
+//
+//            moveSlide(1, 80, 2);
+//            gyroDrive(0.01, -4, 0);
+//            robot.pickup.setPosition(0);
+
+            if(parkingPosition == 1) {
+                gyroDrive(.5, 12, -1); //postive is backwards
+                gyroTurn(.5, 0);
+
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                gyroDrive(.5, 12, -1);
+                gyroTurn(.5,-0);
+                gyroStrafe(.5, 30, 0); //strafe left
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                gyroDrive(.5, 12, -1);
+                gyroTurn(.5, -0);
+                gyroStrafe(.5, 60, 0); //strafe left
+                telemetry.addLine("Parked in position 3");
+            }
+        }
+
+        else if (picture == "Blue Audience Wall") {
+            gyroStrafe(.5, 21, 0); // strafe left
+            gyroHold(1, 0, 1);
+            gyroDrive(0.01, -23, 0); //negative is forward
+            gyroTurn(.3, 40);
+            gyroDrive(.1,  -5, 0); //negative is forward
+
+            moveSlide(1, 80, 2);
+            gyroDrive(0.01, -4, 0);
+            robot.pickup.setPosition(0);
+
+            gyroDrive(.5, 12, -1); //postive is backwards
+            gyroTurn(.5, 0);
+
+            if(parkingPosition == 1) {
+                gyroStrafe(.5, -60, 0);
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                gyroStrafe(.5, -30, 0);
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                telemetry.addLine("Parked in position 3");
+
+            }
+            sleep(2000);
+        }
+
+
+    }
+
 
     public void gyroDrive ( double speed,
                             double distance,
