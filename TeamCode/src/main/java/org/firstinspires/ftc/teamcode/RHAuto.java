@@ -304,109 +304,15 @@ public class RHAuto extends LinearOpMode {
                 telemetry.update();
             }
         }
-        robot.cameraServo.setPosition(.8); // turn  camera left
+        robot.cameraServo.setPosition(.7); // turn  camera left
         sleep(1000);
-        ArrayList<String> targetResults = findTarget();
-        sleep(1000);
-        if (targetResults.isEmpty()) {
-            telemetry.addLine("Couldn't Find Photo, Looking to the right");
-            telemetry.update();
+        runAuto();
 
 
-            robot.cameraServo.setPosition(.2); // Turn right
-            sleep(10000);
-            targetResults = findTarget();
-
-            if (targetResults.isEmpty()) {
-                telemetry.addLine("Im lost. Parking now");
-                telemetry.update();
-                sleep(10000);
-
-            }
-        } else { // if it finds something right away
-            telemetry.addLine("Found where I am, beginning to stack.");
-            String picture = targetResults.get(0);
-            telemetry.addLine(targetResults.get(0));
-            telemetry.update();
-
-
-
-            if (picture == "Red Audience Wall") {
-                gyroDrive(.5, 20, 0);
-                gyroHold(1, 0, 1);
-
-
-                if(parkingPosition == 1) {
-                    gyroStrafe(1, -20, 0);
-
-                    telemetry.addLine("Parked in position 1");
-                }
-                if(parkingPosition == 2) {
-                    telemetry.addLine("Parked in position 2");
-                }
-                if(parkingPosition == 3) {
-                    gyroStrafe(1, 20, 0);
-                    telemetry.addLine("Parked in position 3");
-                }
-
-
-                //stack
-            } else if (picture == "Red Rear Wall") {
-                gyroDrive(.5, 20, 0);
-                gyroHold(1, 0, 1);
-
-
-                if(parkingPosition == 1) {
-                    gyroStrafe(1, -20, 0);
-
-                    telemetry.addLine("Parked in position 1");
-                }
-                if(parkingPosition == 2) {
-                    telemetry.addLine("Parked in position 2");
-                }
-                if(parkingPosition == 3) {
-                    gyroStrafe(1, 20, 0);
-                    telemetry.addLine("Parked in position 3");
-                }
-            } else if (picture == "Blue Rear Wall") {
-                gyroDrive(.5, 20, 0);
-                gyroHold(1, 0, 1);
-
-
-                if(parkingPosition == 1) {
-                    gyroStrafe(1, -20, 0);
-
-                    telemetry.addLine("Parked in position 1");
-                }
-                if(parkingPosition == 2) {
-                    telemetry.addLine("Parked in position 2");
-                }
-                if(parkingPosition == 3) {
-                    gyroStrafe(1, 20, 0);
-                    telemetry.addLine("Parked in position 3");
-                }
-            } else if (picture == "Blue Audience Wall") {
-                gyroDrive(.5, 20, 0);
-                gyroHold(1, 0, 1);
-
-
-                if(parkingPosition == 1) {
-                    gyroStrafe(1, -20, 0);
-
-                    telemetry.addLine("Parked in position 1");
-                }
-                if(parkingPosition == 2) {
-                    telemetry.addLine("Parked in position 2");
-                }
-                if(parkingPosition == 3) {
-                    gyroStrafe(1, 20, 0);
-                    telemetry.addLine("Parked in position 3");
-                }
-            }
 
 
         }
-    }
+
 
     public void gyroDrive ( double speed,
                             double distance,
@@ -430,8 +336,8 @@ public class RHAuto extends LinearOpMode {
 
             // Determine new target position, and pass to motor controller
             moveCounts = (int)(distance * COUNTS_PER_INCH);
-            newLeftTarget = robot.leftDrive.getCurrentPosition() - moveCounts;
-            newRightTarget = robot.rightDrive.getCurrentPosition() + moveCounts;
+            newLeftTarget = robot.leftDrive.getCurrentPosition() + moveCounts;
+            newRightTarget = robot.rightDrive.getCurrentPosition() - moveCounts;
             newRForwardTarget = robot.rightForwardDrive.getCurrentPosition() - moveCounts;
             newLForwardTarget = robot.leftForwardDrive.getCurrentPosition() + moveCounts;
 
@@ -790,4 +696,15 @@ public class RHAuto extends LinearOpMode {
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
         // tfod.loadModelFromFile(TFOD_MODEL_FILE, LABELS);
     }
-}
+
+    public void runAuto() {
+
+            gyroStrafe(1, 36, 0);
+            gyroDrive(1, -10, 0);
+
+
+
+
+    }
+    }
+

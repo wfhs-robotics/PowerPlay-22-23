@@ -106,7 +106,7 @@ public class RHOpMode extends LinearOpMode {
             double drive = -gamepad1.left_stick_y;
             double strafe = gamepad1.left_stick_x;
             double twist = 0;
-            double normalTurn= gamepad1.right_stick_x;
+            double normalTurn= -gamepad1.right_stick_x;
             double cameraServo = gamepad2.left_trigger;
             double armServo = gamepad2.right_stick_y;
 
