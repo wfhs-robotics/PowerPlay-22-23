@@ -36,7 +36,6 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -92,7 +91,7 @@ import java.util.List;
  * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
-@Disabled
+
 @Autonomous(name = "BHAuto", group = "Pushbot")
 public class BHAuto extends LinearOpMode {
 
@@ -169,8 +168,7 @@ public class BHAuto extends LinearOpMode {
         imu.initialize(parameters);
 
 
-
-        angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
 
@@ -220,7 +218,7 @@ public class BHAuto extends LinearOpMode {
             // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
             // should be set to the value of the images used to create the TensorFlow Object Detection model
             // (typically 16/9).
-            tfod.setZoom(1.0, 16.0/9.0);
+            tfod.setZoom(1.0, 16.0 / 9.0);
         }
 
 
@@ -253,7 +251,6 @@ public class BHAuto extends LinearOpMode {
         robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
-
         targets.activate();
 
         telemetry.addLine("Init Finished");
@@ -279,7 +276,6 @@ public class BHAuto extends LinearOpMode {
 
 //                    telemetry.addData("", " ");
 //                    telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
-
 
 
                     if (recognition.getLabel().contains("1")) {
@@ -313,14 +309,19 @@ public class BHAuto extends LinearOpMode {
             telemetry.update();
 
 
-            robot.cameraServo.setPosition(.2); // Turn right
-            sleep(10000);
+            robot.cameraServo.setPosition(.35); // Turn right
+            sleep(1500);
             targetResults = findTarget();
+            sleep(1000);
+            String picture = targetResults.get(0);
+            runAuto(picture);
+
+            runAuto(targetResults.get(0));
 
             if (targetResults.isEmpty()) {
                 telemetry.addLine("Im lost. Parking now");
                 telemetry.update();
-                sleep(10000);
+
 
             }
         } else { // if it finds something right away
@@ -330,82 +331,86 @@ public class BHAuto extends LinearOpMode {
             telemetry.update();
 
 
-
-            if (picture == "Red Audience Wall") {
-                gyroDrive(.5, 20, 0);
-                gyroHold(1, 0, 1);
-
-
-                if(parkingPosition == 1) {
-                    gyroStrafe(1, -20, 0);
-
-                    telemetry.addLine("Parked in position 1");
-                }
-                if(parkingPosition == 2) {
-                    telemetry.addLine("Parked in position 2");
-                }
-                if(parkingPosition == 3) {
-                    gyroStrafe(1, 20, 0);
-                    telemetry.addLine("Parked in position 3");
-                }
+            runAuto(picture);
+        }
+    }
 
 
-                //stack
-            } else if (picture == "Red Rear Wall") {
-                gyroDrive(.5, 20, 0);
-                gyroHold(1, 0, 1);
+    public void runAuto(String picture) {
+        if (picture == "Red Audience Wall") {
+            gyroDrive(.5, -20, 0);
+            gyroHold(1, 0, 1);
 
 
-                if(parkingPosition == 1) {
-                    gyroStrafe(1, -20, 0);
+            if(parkingPosition == 1) {
+                gyroStrafe(1, -20, 0);
 
-                    telemetry.addLine("Parked in position 1");
-                }
-                if(parkingPosition == 2) {
-                    telemetry.addLine("Parked in position 2");
-                }
-                if(parkingPosition == 3) {
-                    gyroStrafe(1, 20, 0);
-                    telemetry.addLine("Parked in position 3");
-                }
-            } else if (picture == "Blue Rear Wall") {
-                gyroDrive(.5, 20, 0);
-                gyroHold(1, 0, 1);
-
-
-                if(parkingPosition == 1) {
-                    gyroStrafe(1, -20, 0);
-
-                    telemetry.addLine("Parked in position 1");
-                }
-                if(parkingPosition == 2) {
-                    telemetry.addLine("Parked in position 2");
-                }
-                if(parkingPosition == 3) {
-                    gyroStrafe(1, 20, 0);
-                    telemetry.addLine("Parked in position 3");
-                }
-            } else if (picture == "Blue Audience Wall") {
-                gyroDrive(.5, 20, 0);
-                gyroHold(1, 0, 1);
-
-
-                if(parkingPosition == 1) {
-                    gyroStrafe(1, -20, 0);
-
-                    telemetry.addLine("Parked in position 1");
-                }
-                if(parkingPosition == 2) {
-                    telemetry.addLine("Parked in position 2");
-                }
-                if(parkingPosition == 3) {
-                    gyroStrafe(1, 20, 0);
-                    telemetry.addLine("Parked in position 3");
-                }
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                gyroStrafe(1, 20, 0);
+                telemetry.addLine("Parked in position 3");
             }
 
 
+            //stack
+        } else if (picture == "Red Rear Wall") {
+            gyroDrive(.5, -20, 0);
+            gyroHold(1, 0, 1);
+
+
+            if(parkingPosition == 1) {
+                gyroStrafe(1, -20, 0);
+
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                gyroStrafe(1, 20, 0);
+                telemetry.addLine("Parked in position 3");
+            }
+        } else if (picture == "Blue Rear Wall") {
+            gyroDrive(.5, -20, 0);
+            gyroHold(1, 0, 1);
+
+
+            if(parkingPosition == 1) {
+                gyroStrafe(1, -20, 0);
+
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                gyroStrafe(1, 20, 0);
+                telemetry.addLine("Parked in position 3");
+            }
+        } else if (picture == "Blue Audience Wall") {
+            gyroDrive(.5, -20, 0);
+            gyroHold(1, 0, 1);
+
+
+            if(parkingPosition == 1) {
+                gyroStrafe(1, -20, 0);
+
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                gyroStrafe(1, 20, 0);
+                telemetry.addLine("Parked in position 3");
+            }
         }
+
+
     }
 
     public void gyroDrive ( double speed,
@@ -432,8 +437,8 @@ public class BHAuto extends LinearOpMode {
             moveCounts = (int)(distance * COUNTS_PER_INCH);
             newLeftTarget = robot.leftDrive.getCurrentPosition() - moveCounts;
             newRightTarget = robot.rightDrive.getCurrentPosition() + moveCounts;
-            newRForwardTarget = robot.rightForwardDrive.getCurrentPosition() - moveCounts;
-            newLForwardTarget = robot.leftForwardDrive.getCurrentPosition() + moveCounts;
+            newRForwardTarget = robot.rightForwardDrive.getCurrentPosition() + moveCounts;
+            newLForwardTarget = robot.leftForwardDrive.getCurrentPosition() - moveCounts;
 
             // Set Target and Turn On RUN_TO_POSITION
             robot.leftDrive.setTargetPosition(newLeftTarget);
@@ -568,10 +573,10 @@ public class BHAuto extends LinearOpMode {
             robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             // start motion
 //            speed = Range.clip(Math.abs(speed), 0.0, 1.0);
-                robot.leftDrive.setPower(speed);
-                robot.rightDrive.setPower(speed);
-                robot.leftForwardDrive.setPower(speed);
-                robot.rightForwardDrive.setPower(speed);
+            robot.leftDrive.setPower(speed);
+            robot.rightDrive.setPower(speed);
+            robot.leftForwardDrive.setPower(speed);
+            robot.rightForwardDrive.setPower(speed);
 
 
 

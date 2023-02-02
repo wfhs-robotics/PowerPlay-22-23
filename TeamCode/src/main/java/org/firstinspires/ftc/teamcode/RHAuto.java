@@ -36,7 +36,6 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -92,7 +91,7 @@ import java.util.List;
  * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
-@Disabled
+
 @Autonomous(name = "RHAuto", group = "Pushbot")
 public class RHAuto extends LinearOpMode {
 
@@ -104,7 +103,7 @@ public class RHAuto extends LinearOpMode {
 
     static final double COUNTS_PER_MOTOR_REV = 1120;    // eg: TETRIX Motor Encoder
     static final double COUNTS_PER_MOTOR_HEX = 288;
-    static final double DRIVE_GEAR_REDUCTION = 0.5;     // This is < 1.0 if geared UP
+    static final double DRIVE_GEAR_REDUCTION = 1.0;     // This is < 1.0 if geared UP
     static final double WHEEL_DIAMETER_INCHES = 3.0;     // For figuring circumference
     static final double SPOOL_DIAMETER_INCHES = 2.0;
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
@@ -169,8 +168,7 @@ public class RHAuto extends LinearOpMode {
         imu.initialize(parameters);
 
 
-
-        angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
 
@@ -220,7 +218,7 @@ public class RHAuto extends LinearOpMode {
             // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
             // should be set to the value of the images used to create the TensorFlow Object Detection model
             // (typically 16/9).
-            tfod.setZoom(1.0, 16.0/9.0);
+            tfod.setZoom(1.0, 16.0 / 9.0);
         }
 
 
@@ -253,7 +251,6 @@ public class RHAuto extends LinearOpMode {
         robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
-
         targets.activate();
 
         telemetry.addLine("Init Finished");
@@ -281,7 +278,6 @@ public class RHAuto extends LinearOpMode {
 //                    telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
 
 
-
                     if (recognition.getLabel().contains("1")) {
                         parkingPosition = 1;
                         telemetry.addLine("1");
@@ -304,15 +300,119 @@ public class RHAuto extends LinearOpMode {
                 telemetry.update();
             }
         }
-        robot.cameraServo.setPosition(.7); // turn  camera left
+        robot.cameraServo.setPosition(.8); // turn  camera left
         sleep(1000);
-        runAuto();
+        ArrayList<String> targetResults = findTarget();
+        sleep(1000);
+        if (targetResults.isEmpty()) {
+            telemetry.addLine("Couldn't Find Photo, Looking to the right");
+            telemetry.update();
 
 
+            robot.cameraServo.setPosition(.28); // Turn right
+            sleep(1500);
+            targetResults = findTarget();
+            sleep(1000);
+            String picture = targetResults.get(0);
+            runAuto(picture);
+
+            runAuto(targetResults.get(0));
+
+            if (targetResults.isEmpty()) {
+                telemetry.addLine("Im lost. Parking now");
+                telemetry.update();
 
 
+            }
+        } else { // if it finds something right away
+            telemetry.addLine("Found where I am, beginning to stack.");
+            String picture = targetResults.get(0);
+            telemetry.addLine(targetResults.get(0));
+            telemetry.update();
+
+
+            runAuto(picture);
+        }
+    }
+
+
+    public void runAuto(String picture) {
+        if (picture == "Red Audience Wall") {
+            gyroDrive(.5, 20, 0);
+            gyroHold(1, 0, 1);
+
+
+            if(parkingPosition == 1) {
+                gyroStrafe(1, -20, 0);
+
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                gyroStrafe(1, 20, 0);
+                telemetry.addLine("Parked in position 3");
+            }
+
+
+            //stack
+        } else if (picture == "Red Rear Wall") {
+            gyroDrive(.5, 20, 0);
+            gyroHold(1, 0, 1);
+
+
+            if(parkingPosition == 1) {
+                gyroStrafe(1, -20, 0);
+
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                gyroStrafe(1, 20, 0);
+                telemetry.addLine("Parked in position 3");
+            }
+        } else if (picture == "Blue Rear Wall") {
+            gyroDrive(.5, -25, 10);
+            gyroHold(1, 0, 3);
+
+
+            if(parkingPosition == 1) {
+                gyroStrafe(1, -20, 0);
+
+
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                gyroStrafe(1, 20, 0);
+                telemetry.addLine("Parked in position 3");
+            }
+        } else if (picture == "Blue Audience Wall") {
+            gyroDrive(.5, 20, 0);
+            gyroHold(1, 0, 1);
+
+
+            if(parkingPosition == 1) {
+                gyroStrafe(1, -20, 0);
+
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                gyroStrafe(1, 20, 0);
+                telemetry.addLine("Parked in position 3");
+            }
         }
 
+
+    }
 
     public void gyroDrive ( double speed,
                             double distance,
@@ -337,7 +437,7 @@ public class RHAuto extends LinearOpMode {
             // Determine new target position, and pass to motor controller
             moveCounts = (int)(distance * COUNTS_PER_INCH);
             newLeftTarget = robot.leftDrive.getCurrentPosition() + moveCounts;
-            newRightTarget = robot.rightDrive.getCurrentPosition() - moveCounts;
+            newRightTarget = robot.rightDrive.getCurrentPosition() + moveCounts;
             newRForwardTarget = robot.rightForwardDrive.getCurrentPosition() - moveCounts;
             newLForwardTarget = robot.leftForwardDrive.getCurrentPosition() + moveCounts;
 
@@ -474,10 +574,10 @@ public class RHAuto extends LinearOpMode {
             robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             // start motion
 //            speed = Range.clip(Math.abs(speed), 0.0, 1.0);
-                robot.leftDrive.setPower(speed);
-                robot.rightDrive.setPower(speed);
-                robot.leftForwardDrive.setPower(speed);
-                robot.rightForwardDrive.setPower(speed);
+            robot.leftDrive.setPower(speed);
+            robot.rightDrive.setPower(speed);
+            robot.leftForwardDrive.setPower(speed);
+            robot.rightForwardDrive.setPower(speed);
 
 
 
@@ -696,15 +796,4 @@ public class RHAuto extends LinearOpMode {
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
         // tfod.loadModelFromFile(TFOD_MODEL_FILE, LABELS);
     }
-
-    public void runAuto() {
-
-            gyroStrafe(1, 36, 0);
-            gyroDrive(1, -10, 0);
-
-
-
-
-    }
-    }
-
+}

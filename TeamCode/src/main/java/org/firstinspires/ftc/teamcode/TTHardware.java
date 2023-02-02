@@ -107,6 +107,7 @@ public class TTHardware
         rightForwardDrive.setPower(0);
         slide.setPower(0);
         cameraServo.setPosition(.55); //technical zero
+        pickup.setPosition(.22);
 
 
 

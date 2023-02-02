@@ -102,7 +102,7 @@ public class RHHardware
         rightDrive.setPower(0);
         leftForwardDrive.setPower(0);
         rightForwardDrive.setPower(0);
-        cameraServo.setPosition(0);
+        cameraServo.setPosition(.5);
 //        slide.setPower(0);
 
 

@@ -102,6 +102,7 @@ public class BHHardware
         rightDrive.setPower(0);
         leftForwardDrive.setPower(0);
         rightForwardDrive.setPower(0);
+        cameraServo.setPosition(.59);
 //        slide.setPower(0);
 
 
