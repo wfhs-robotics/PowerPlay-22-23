@@ -302,7 +302,7 @@ public class TTOpMode extends LinearOpMode {
 
                 }
             }
-            slidePower = Range.clip(slide, -1,1);
+            slidePower = Range.clip(slide, -.88,.88);
             robot.slide.setPower(slidePower);
 
         }

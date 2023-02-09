@@ -66,7 +66,7 @@ import com.qualcomm.robotcore.util.Range;
  *  In OnBot Java, add a new OpMode, drawing from this Sample; select TeleOp.
  *  Also add another new file named RobotHardware.java, drawing from the Sample with that name; select Not an OpMode.
 */
-
+@Disabled
 @TeleOp(name="RHOpMode", group="Robot")
 public class RHOpMode extends LinearOpMode {
     private boolean sean = false;
@@ -118,10 +118,10 @@ public class RHOpMode extends LinearOpMode {
 
 
             if(clawOpen) {
-                robot.claw.setPosition(45);
+                robot.claw.setPosition(.5);
             }
             if(clawClose) {
-                robot.claw.setPosition(-45);
+                robot.claw.setPosition(-.5);
             }
 
 
