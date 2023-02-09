@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Others;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
@@ -57,7 +57,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,19 +92,19 @@ import java.util.List;
  * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
-
-@Autonomous(name = "TTAuto", group = "Pushbot")
-public class TTAuto extends LinearOpMode {
+@Disabled
+@Autonomous(name = "RHAuto", group = "Pushbot")
+public class RHAuto extends LinearOpMode {
 
 
     /* Declare OpMode members. */
-    TTHardware robot = new TTHardware();
+    RHHardware robot = new RHHardware();
 
     private ElapsedTime runtime = new ElapsedTime();// Use a Pushbot's hardware
 
     static final double COUNTS_PER_MOTOR_REV = 1120;    // eg: TETRIX Motor Encoder
     static final double COUNTS_PER_MOTOR_HEX = 288;
-    static final double DRIVE_GEAR_REDUCTION = 0.5;     // This is < 1.0 if geared UP
+    static final double DRIVE_GEAR_REDUCTION = 1.0;     // This is < 1.0 if geared UP
     static final double WHEEL_DIAMETER_INCHES = 3.0;     // For figuring circumference
     static final double SPOOL_DIAMETER_INCHES = 2.0;
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
@@ -220,7 +219,7 @@ public class TTAuto extends LinearOpMode {
             // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
             // should be set to the value of the images used to create the TensorFlow Object Detection model
             // (typically 16/9).
-            //tfod.setZoom(1.0, 16.0/9.0);
+            tfod.setZoom(1.0, 16.0 / 9.0);
         }
 
 
@@ -254,51 +253,12 @@ public class TTAuto extends LinearOpMode {
 
 
         targets.activate();
-        if (tfod != null) {
-
-            // getUpdatedRecognitions() will return null if no new information is available since
-            // the last time that call was made.
-            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-            if (updatedRecognitions != null) {
-
-
-                // step through the list of recognitions and display image position/size information for each one
-                // Note: "Image number" refers to the randomized image orientation/number
-                for (Recognition recognition : updatedRecognitions) {
-                    double col = (recognition.getLeft() + recognition.getRight()) / 2;
-                    double row = (recognition.getTop() + recognition.getBottom()) / 2;
-                    double width = Math.abs(recognition.getRight() - recognition.getLeft());
-                    double height = Math.abs(recognition.getTop() - recognition.getBottom());
-
-//                    telemetry.addData("", " ");
-//                    telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
-
-
-                    if (recognition.getLabel().contains("1")) {
-                        parkingPosition = 1;
-                        telemetry.addLine("1");
-                        telemetry.update();
-                    } else if (recognition.getLabel().contains("2")) {
-                        parkingPosition = 2;
-                        telemetry.addLine("2");
-                        telemetry.update();
-                    } else if (recognition.getLabel().contains("3")) {
-                        parkingPosition = 3;
-                        telemetry.addLine("3");
-                        telemetry.update();
-                    } else {
-                        telemetry.addLine("Could not find where to park");
-                        telemetry.update();
-                    }
-                }
-
-            }
-        }
 
         telemetry.addLine("Init Finished");
         telemetry.update();
         waitForStart();
 
+
         if (tfod != null) {
 
             // getUpdatedRecognitions() will return null if no new information is available since
@@ -323,45 +283,46 @@ public class TTAuto extends LinearOpMode {
                         parkingPosition = 1;
                         telemetry.addLine("1");
                         telemetry.update();
-                    } else if (recognition.getLabel().contains("2")) {
+                    }
+
+
+                    if (recognition.getLabel().contains("2")) {
                         parkingPosition = 2;
                         telemetry.addLine("2");
                         telemetry.update();
-                    } else if (recognition.getLabel().contains("3")) {
+                    }
+
+                    if (recognition.getLabel().contains("3")) {
                         parkingPosition = 3;
                         telemetry.addLine("3");
-                        telemetry.update();
-                    } else {
-                        telemetry.addLine("Could not find where to park");
                         telemetry.update();
                     }
                 }
                 telemetry.update();
             }
         }
-
-        robot.cameraServo.setPosition(.8); // turn  camera
-        robot.pickup.setPosition(0);
-        sleep(250);
-        moveSlide(1, 38, 1);
-        sleep(250);
+        robot.cameraServo.setPosition(.8); // turn  camera left
+        sleep(1000);
         ArrayList<String> targetResults = findTarget();
         sleep(1000);
         if (targetResults.isEmpty()) {
             telemetry.addLine("Couldn't Find Photo, Looking to the right");
             telemetry.update();
 
-            robot.cameraServo.setPosition(.3); // Turn right
+
+            robot.cameraServo.setPosition(.28); // Turn right
             sleep(1500);
             targetResults = findTarget();
             sleep(1000);
             String picture = targetResults.get(0);
             runAuto(picture);
 
+            runAuto(targetResults.get(0));
+
             if (targetResults.isEmpty()) {
                 telemetry.addLine("Im lost. Parking now");
                 telemetry.update();
-                sleep(10000);
+
 
             }
         } else { // if it finds something right away
@@ -369,94 +330,90 @@ public class TTAuto extends LinearOpMode {
             String picture = targetResults.get(0);
             telemetry.addLine(targetResults.get(0));
             telemetry.update();
+
+
             runAuto(picture);
         }
     }
 
+
     public void runAuto(String picture) {
-        if (picture == "Red Audience Wall" || picture == "Blue Rear Wall") {
-            gyroStrafe(.5, -21, 0); //strafe right
+        if (picture == "Red Audience Wall") {
+            gyroDrive(.5, 20, 0);
             gyroHold(1, 0, 1);
-            gyroDrive(0.01, -23, 0); //negative is forward
-            gyroTurn(0.3, -37);
-            gyroDrive(0.1, -6, -36); //negative is forward drive to pole
-            sleep(1000);
-
-            moveSlide(1, 180, 3);
-            robot.slide.setPower(.75);
-            sleep(250);
-            robot.pickup.setPosition(.22);
-            sleep(250);
-            robot.slide.setPower(0);
 
 
             if(parkingPosition == 1) {
-                gyroDrive(.2, 18, -1); //postive is backwards
-                gyroTurn(.5, 0);
+                gyroStrafe(1, -20, 0);
 
                 telemetry.addLine("Parked in position 1");
             }
             if(parkingPosition == 2) {
-                gyroDrive(.5, 18, -1);
-                gyroTurn(.5,0);
-                gyroStrafe(.2, 27, 0); //strafe left
                 telemetry.addLine("Parked in position 2");
             }
             if(parkingPosition == 3) {
-                gyroDrive(.5, 18, -1);
-                gyroTurn(.5, -1);
-                gyroStrafe(.2, 60, 0); //strafe left
+                gyroStrafe(1, 20, 0);
                 telemetry.addLine("Parked in position 3");
             }
 
 
-        } else if (picture == "Red Rear Wall" || picture == "Blue Audience Wall") {
-            gyroStrafe(.5, 32, 0); // strafe left
+            //stack
+        } else if (picture == "Red Rear Wall") {
+            gyroDrive(.5, 20, 0);
             gyroHold(1, 0, 1);
-            gyroDrive(0.01, -24, 0); //negative is forward
-            gyroTurn(.3, 34);
-            gyroDrive(0.1, -8, 35); //negative is forward drive to pole
-            sleep(1000);
 
-            moveSlide(1, 180, 3);
-            robot.slide.setPower(.75);
-            sleep(250);
-            gyroHold(1,32, 1);
-            robot.pickup.setPosition(.22);
-            sleep(250);
-            robot.slide.setPower(0);
-
-
-            //back away from pole and turn to 0
-            gyroDrive(.5, 14, 35); //positive is backwards
-            gyroTurn(.5, -1);
-            gyroHold(.5, -1, 1);
 
             if(parkingPosition == 1) {
+                gyroStrafe(1, -20, 0);
 
-                gyroStrafe(.5, -60, 0);
                 telemetry.addLine("Parked in position 1");
             }
             if(parkingPosition == 2) {
-
-                gyroStrafe(.5, -30, 0);
                 telemetry.addLine("Parked in position 2");
             }
             if(parkingPosition == 3) {
-
+                gyroStrafe(1, 20, 0);
                 telemetry.addLine("Parked in position 3");
-
             }
-            sleep(2000);
+        } else if (picture == "Blue Rear Wall") {
+            gyroDrive(.5, -25, 10);
+            gyroHold(1, 0, 3);
 
+
+            if(parkingPosition == 1) {
+                gyroStrafe(1, -20, 0);
+
+
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                gyroStrafe(1, 20, 0);
+                telemetry.addLine("Parked in position 3");
+            }
+        } else if (picture == "Blue Audience Wall") {
+            gyroDrive(.5, 20, 0);
+            gyroHold(1, 0, 1);
+
+
+            if(parkingPosition == 1) {
+                gyroStrafe(1, -20, 0);
+
+                telemetry.addLine("Parked in position 1");
+            }
+            if(parkingPosition == 2) {
+                telemetry.addLine("Parked in position 2");
+            }
+            if(parkingPosition == 3) {
+                gyroStrafe(1, 20, 0);
+                telemetry.addLine("Parked in position 3");
+            }
         }
 
 
-
-
-
     }
-
 
     public void gyroDrive ( double speed,
                             double distance,
@@ -480,7 +437,7 @@ public class TTAuto extends LinearOpMode {
 
             // Determine new target position, and pass to motor controller
             moveCounts = (int)(distance * COUNTS_PER_INCH);
-            newLeftTarget = robot.leftDrive.getCurrentPosition() - moveCounts;
+            newLeftTarget = robot.leftDrive.getCurrentPosition() + moveCounts;
             newRightTarget = robot.rightDrive.getCurrentPosition() + moveCounts;
             newRForwardTarget = robot.rightForwardDrive.getCurrentPosition() - moveCounts;
             newLForwardTarget = robot.leftForwardDrive.getCurrentPosition() + moveCounts;
@@ -618,10 +575,10 @@ public class TTAuto extends LinearOpMode {
             robot.rightForwardDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             // start motion
 //            speed = Range.clip(Math.abs(speed), 0.0, 1.0);
-                robot.leftDrive.setPower(speed);
-                robot.rightDrive.setPower(speed);
-                robot.leftForwardDrive.setPower(speed);
-                robot.rightForwardDrive.setPower(speed);
+            robot.leftDrive.setPower(speed);
+            robot.rightDrive.setPower(speed);
+            robot.leftForwardDrive.setPower(speed);
+            robot.rightForwardDrive.setPower(speed);
 
 
 
@@ -700,54 +657,6 @@ public class TTAuto extends LinearOpMode {
         robot.leftForwardDrive.setPower(0);
         robot.rightForwardDrive.setPower(0);
     }
-
-    public void moveSlide(double speed, double slideInches, double timeoutS) {
-        int spoolTarget;
-
-        // Ensure that the opmode is still active
-        if (opModeIsActive()) {
-
-            // Determine new target position, and pass to motor controller
-            spoolTarget = robot.slide.getCurrentPosition() + (int)(slideInches * COUNTS_PER_INCH_SPOOL);
-            robot.slide.setTargetPosition(spoolTarget);
-
-
-            // Turn On RUN_TO_POSITION
-            robot.slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-
-            // reset the timeout time and start motion.
-            runtime.reset();
-            robot.slide.setPower(Math.abs(speed));
-
-
-            // keep looping while we are still active, and there is time left, and both motors are running.
-            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
-            // its target position, the motion will stop.  This is "safer" in the event that the robot will
-            // always end the motion as soon as possible.
-            // However, if you require that BOTH motors have finished their moves before the robot continues
-            // onto the next step, use (isBusy() || isBusy()) in the loop test.
-            while (opModeIsActive() &&
-                    (runtime.seconds() < timeoutS) &&
-                    (robot.slide.isBusy())) {
-
-                // Display it for the driver.
-            /*    telemetry.addData("Path1",  "Running to %7d :%7d", spoolTarget);
-                telemetry.addData("Path2",  "Running at %7d :%7d",
-                        robot.spool.getCurrentPosition());
-           */
-            }
-
-            // Stop all motion;
-            robot.slide.setPower(0);
-            robot.slide.setPower(0);
-
-            // Turn off RUN_TO_POSITION
-            robot.slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-
-            sleep(250);   // optional pause after each move
-        }}
 
 
     /**

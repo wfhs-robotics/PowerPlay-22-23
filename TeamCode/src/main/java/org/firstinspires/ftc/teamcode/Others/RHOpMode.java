@@ -27,13 +27,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Others;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
@@ -65,13 +63,13 @@ import com.qualcomm.robotcore.util.Range;
  *
  *  In OnBot Java, add a new OpMode, drawing from this Sample; select TeleOp.
  *  Also add another new file named RobotHardware.java, drawing from the Sample with that name; select Not an OpMode.
- */
+*/
 @Disabled
-@TeleOp(name="BHOpMode", group="Robot")
-public class BHOpMode extends LinearOpMode {
+@TeleOp(name="RHOpMode", group="Robot")
+public class RHOpMode extends LinearOpMode {
     private boolean sean = false;
     public HardwareMap tthw = null;
-    BHHardware robot = new BHHardware();
+    RHHardware robot = new RHHardware();
 
     // Create a RobotHardware object to be used to access robot hardware.
     // Prefix any hardware functions with "robot." to access this class.
@@ -79,6 +77,8 @@ public class BHOpMode extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+
+
 
 
         // initialize all the hardware, using the hardware class. See how clean and simple this is?
@@ -94,22 +94,33 @@ public class BHOpMode extends LinearOpMode {
         while (opModeIsActive()) {
 
             robot.init(hardwareMap);
-
             // Mecanum drive is controlled with three axes: drive (front-and-back),
             // strafe (left-and-right), and twist (rotating the whole chassis).
 
-            double drive = gamepad1.left_stick_x;
-            double strafe = gamepad1.left_stick_y;
-            double twist = 0;
-            double slide = -gamepad2.left_stick_y;
-            double normalTurn= gamepad1.right_stick_x;
+            double arm = gamepad2.left_stick_y;
+            boolean clawOpen = gamepad2.left_bumper;
+            boolean clawClose = gamepad2.right_bumper;
 
+            double drive = -gamepad1.left_stick_y;
+            double strafe = gamepad1.left_stick_x;
+            double twist = 0;
+            double normalTurn= -gamepad1.right_stick_x;
+            double cameraServo = gamepad2.left_trigger;
+            double armServo = gamepad2.right_stick_y;
 
             double leftPower;
             double rightPower;
             double leftForwardPower;
             double rightForwardPower;
-            double slidePower;
+
+
+
+            if(clawOpen) {
+                robot.claw.setPosition(.5);
+            }
+            if(clawClose) {
+                robot.claw.setPosition(-.5);
+            }
 
 
 
@@ -121,10 +132,7 @@ public class BHOpMode extends LinearOpMode {
 
 
 
-
-
-
-
+            //robot.cameraServo.setPosition(0.0);
             /*
              * If we had a gyro and wanted to do field-oriented control, here
              * is where we would implement it.
@@ -179,8 +187,8 @@ public class BHOpMode extends LinearOpMode {
                 telemetry.update();
                 robot.leftForwardDrive.setPower(speeds[0]);
                 robot.rightForwardDrive.setPower(speeds[1]);
-                robot.leftDrive.setPower(speeds[2]);
-                robot.rightDrive.setPower(speeds[3]);
+                robot.leftDrive.setPower(-speeds[2]);
+                robot.rightDrive.setPower(-speeds[3]);
             }
             else {
                 telemetry.addData(">","turn");
@@ -191,16 +199,45 @@ public class BHOpMode extends LinearOpMode {
                 leftForwardPower = Range.clip(normalTurn, -1.0, 1.0);
 
 
-                robot.leftForwardDrive.setPower(-leftForwardPower);
-                robot.rightForwardDrive.setPower(-rightForwardPower);
+                robot.leftForwardDrive.setPower(leftForwardPower);
+                robot.rightForwardDrive.setPower(rightForwardPower);
                 robot.leftDrive.setPower(leftPower);
                 robot.rightDrive.setPower(rightPower);
             }
 
 
+            if(gamepad1.dpad_down)
+            {
+                sean = true;
             }
+            if(gamepad1.dpad_up)
+            {
+                sean = false;
+            }
+
+            if(sean) {
+                robot.leftDrive.setPower(robot.leftDrive.getPower() * 0.2);
+                robot.rightDrive.setPower(robot.rightDrive.getPower() * 0.2);
+                robot.leftForwardDrive.setPower(robot.leftForwardDrive.getPower() * 0.2);
+                robot.rightForwardDrive.setPower(robot.rightForwardDrive.getPower() * 0.2);
+                if(gamepad1.right_stick_x > 0) {
+                    leftPower = Range.clip(drive + twist, -0.5, 0.5) ;
+                    rightPower = Range.clip(drive - twist, -0.5, 0.5) ;
+                    rightForwardPower = Range.clip(drive - twist, -0.5, 0.5) ;
+                    leftForwardPower = Range.clip(drive + twist, -0.5, 0.5) ;
+
+
+                }
+
+            }
+
+            robot.arm.setPower(Range.clip(arm, -1, 1));
+
+
+            robot.slide.setPower(Range.clip(armServo, -1, 1));
+
 
         }
 
     }
-
+}
