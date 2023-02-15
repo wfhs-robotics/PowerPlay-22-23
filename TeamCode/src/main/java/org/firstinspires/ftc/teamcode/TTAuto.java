@@ -56,6 +56,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefau
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.openftc.apriltag.AprilTagDetection;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -161,6 +165,30 @@ public class TTAuto extends LinearOpMode {
 
     private boolean targetVisible = false;
 
+    OpenCvCamera camera;
+    AprilTagDetectionPipeline aprilTagDetectionPipeline;
+
+    static final double FEET_PER_METER = 3.28084;
+
+    // Lens intrinsics
+    // UNITS ARE PIXELS
+    // NOTE: this calibration is for the C920 webcam at 800x448.
+    // You will need to do your own calibration for other configurations!
+    double fx = 578.272;
+    double fy = 578.272;
+    double cx = 402.145;
+    double cy = 221.506;
+
+    // UNITS ARE METERS
+    double tagsize = 0.166;
+
+    // Tag ID 1,2,3 from the 36h11 family
+    int LEFT = 1;
+    int MIDDLE = 2;
+    int RIGHT = 3;
+
+    AprilTagDetection tagOfInterest = null;
+
     @Override
     public void runOpMode() {
         //      while(opModeInInit()) {
@@ -210,18 +238,7 @@ public class TTAuto extends LinearOpMode {
         identifyTarget(3, "Blue Rear Wall", halfField, oneAndHalfTile, mmTargetHeight, 90, 0, -90);
 
 
-        initTfod();
-        if (tfod != null) {
-            tfod.activate();
 
-            // The TensorFlow software will scale the input images from the camera to a lower resolution.
-            // This can result in lower detection accuracy at longer distances (> 55cm or 22").
-            // If your target is at distance greater than 50 cm (20") you can increase the magnification value
-            // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
-            // should be set to the value of the images used to create the TensorFlow Object Detection model
-            // (typically 16/9).
-            //tfod.setZoom(1.0, 16.0/9.0);
-        }
 
 
         // Name and locate each trackable object
@@ -253,92 +270,65 @@ public class TTAuto extends LinearOpMode {
         robot.leftForwardDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
-        targets.activate();
-        if (tfod != null) {
 
-            // getUpdatedRecognitions() will return null if no new information is available since
-            // the last time that call was made.
-            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-            if (updatedRecognitions != null) {
-
-
-                // step through the list of recognitions and display image position/size information for each one
-                // Note: "Image number" refers to the randomized image orientation/number
-                for (Recognition recognition : updatedRecognitions) {
-                    double col = (recognition.getLeft() + recognition.getRight()) / 2;
-                    double row = (recognition.getTop() + recognition.getBottom()) / 2;
-                    double width = Math.abs(recognition.getRight() - recognition.getLeft());
-                    double height = Math.abs(recognition.getTop() - recognition.getBottom());
-
-//                    telemetry.addData("", " ");
-//                    telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
-
-
-                    if (recognition.getLabel().contains("1")) {
-                        parkingPosition = 1;
-                        telemetry.addLine("1");
-                        telemetry.update();
-                    } else if (recognition.getLabel().contains("2")) {
-                        parkingPosition = 2;
-                        telemetry.addLine("2");
-                        telemetry.update();
-                    } else if (recognition.getLabel().contains("3")) {
-                        parkingPosition = 3;
-                        telemetry.addLine("3");
-                        telemetry.update();
-                    } else {
-                        telemetry.addLine("Could not find where to park");
-                        telemetry.update();
-                    }
-                }
-
-            }
-        }
 
         telemetry.addLine("Init Finished");
         telemetry.update();
-        waitForStart();
-
-        if (tfod != null) {
-
-            // getUpdatedRecognitions() will return null if no new information is available since
-            // the last time that call was made.
-            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-            if (updatedRecognitions != null) {
 
 
-                // step through the list of recognitions and display image position/size information for each one
-                // Note: "Image number" refers to the randomized image orientation/number
-                for (Recognition recognition : updatedRecognitions) {
-                    double col = (recognition.getLeft() + recognition.getRight()) / 2;
-                    double row = (recognition.getTop() + recognition.getBottom()) / 2;
-                    double width = Math.abs(recognition.getRight() - recognition.getLeft());
-                    double height = Math.abs(recognition.getTop() - recognition.getBottom());
 
-//                    telemetry.addData("", " ");
-//                    telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
+        int cameraMonitorViewIdAT = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewIdAT", "id", hardwareMap.appContext.getPackageName());
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewIdAT);
+        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
 
+        camera.setPipeline(aprilTagDetectionPipeline);
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                camera.startStreaming(800,448, OpenCvCameraRotation.UPRIGHT);
+            }
 
-                    if (recognition.getLabel().contains("1")) {
-                        parkingPosition = 1;
-                        telemetry.addLine("1");
-                        telemetry.update();
-                    } else if (recognition.getLabel().contains("2")) {
-                        parkingPosition = 2;
-                        telemetry.addLine("2");
-                        telemetry.update();
-                    } else if (recognition.getLabel().contains("3")) {
-                        parkingPosition = 3;
-                        telemetry.addLine("3");
-                        telemetry.update();
-                    } else {
-                        telemetry.addLine("Could not find where to park");
-                        telemetry.update();
+            @Override
+            public void onError(int errorCode)
+            {
+
+            }
+        });
+
+        telemetry.setMsTransmissionInterval(50);
+
+            ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
+
+            if(currentDetections.size() != 0) {
+                boolean tagFound = false;
+
+                for (AprilTagDetection tag : currentDetections) {
+                    if (tag.id == LEFT || tag.id == MIDDLE || tag.id == RIGHT) {
+                        tagOfInterest = tag;
+                        tagFound = true;
+                        break;
                     }
                 }
-                telemetry.update();
+
+                if (tagFound) {
+                    telemetry.addLine("Tag of interest is in sight!\n\nLocation data:");
+                    telemetry.update();
+
+                    tagToTelemetry(tagOfInterest);
+                    parkingPosition = tagOfInterest.id;
+                } else {
+                    telemetry.addLine("Don't see tag of interest :(");
+                    telemetry.update();
+                }
             }
-        }
+
+
+
+
+        waitForStart();
+
 
         robot.cameraServo.setPosition(.8); // turn  camera
         robot.pickup.setPosition(0);
@@ -350,7 +340,6 @@ public class TTAuto extends LinearOpMode {
         if (targetResults.isEmpty()) {
             telemetry.addLine("Couldn't Find Photo, Looking to the right");
             telemetry.update();
-
             robot.cameraServo.setPosition(.3); // Turn right
             sleep(1500);
             targetResults = findTarget();
@@ -874,18 +863,10 @@ public class TTAuto extends LinearOpMode {
         return targetArrayList;
     }
 
-    private void initTfod() {
-        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
-                "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
-        tfodParameters.minResultConfidence = 0.75f;
-        tfodParameters.isModelTensorFlow2 = true;
-        tfodParameters.inputSize = 300;
-        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
 
-        // Use loadModelFromAsset() if the TF Model is built in as an asset by Android Studio
-        // Use loadModelFromFile() if you have downloaded a custom team model to the Robot Controller's FLASH.
-        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
-        // tfod.loadModelFromFile(TFOD_MODEL_FILE, LABELS);
+    void tagToTelemetry(AprilTagDetection detection)
+    {
+        telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
+
     }
 }
