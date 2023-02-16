@@ -56,6 +56,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefau
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.opencv.core.Scalar;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -143,9 +144,13 @@ public class TTAuto extends LinearOpMode {
 
     // Class Members
     private OpenGLMatrix lastLocation = null;
-    private VuforiaLocalizer vuforia = null;
+//    private VuforiaLocalizer vuforia = null;
     private VuforiaTrackables targets = null;
     private WebcamName webcamName = null;
+
+    VuforiaLocalizer vuforia = null;
+    OpenCvCamera vuforiaPassthroughCam;
+
     List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
 
     String pictureName = "No Target Identified";
@@ -166,7 +171,7 @@ public class TTAuto extends LinearOpMode {
     private boolean targetVisible = false;
 
     OpenCvCamera camera;
-    AprilTagDetectionPipeline aprilTagDetectionPipeline;
+
 
     static final double FEET_PER_METER = 3.28084;
 
@@ -181,6 +186,7 @@ public class TTAuto extends LinearOpMode {
 
     // UNITS ARE METERS
     double tagsize = 0.166;
+    AprilTagDetectionPipeline aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx,fy, cx, cy);
 
     // Tag ID 1,2,3 from the 36h11 family
     int LEFT = 1;
@@ -193,9 +199,9 @@ public class TTAuto extends LinearOpMode {
     public void runOpMode() {
         //      while(opModeInInit()) {
 
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        BNO055IMU.Parameters parametersIMU = new BNO055IMU.Parameters();
         imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(parameters);
+        imu.initialize(parametersIMU);
 
 
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -203,45 +209,64 @@ public class TTAuto extends LinearOpMode {
         webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
 
 
+
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        VuforiaLocalizer.Parameters vuforiaParameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+        int[] viewportContainerIds = OpenCvCameraFactory.getInstance().splitLayoutForMultipleViewports(cameraMonitorViewId, 2, OpenCvCameraFactory.ViewportSplitMethod.VERTICALLY);
 
-        // VuforiaLocalizer.Parameters camParameters = new VuforiaLocalizer.Parameters();
-        vuforiaParameters.vuforiaLicenseKey = VUFORIA_KEY;
+        /*
+         * Setup Vuforia
+         */
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(viewportContainerIds[0]);
+        parameters.vuforiaLicenseKey = "AeWr4R//////AAABmbYsM7cHZkA+sRMzs/bFu44j3cYkmMaU6H+xbpPJQ9SynROk2nudJ0sVbgyn7Gc+hGMZ8rFyx0+8iSoQ8O1LZ5+V+4OcX1sL9z1puLugUplscZg7Q53zbPd3BnkON+tt6fFC0VNDNwUEACrMk+TM9szoroXvoJ5PYvywBFuVVq559PhuXwiobyzmMQI7Pb+gXlQj5EmvKn6etHHmWka2xLh1yq85NBuAFaVnlumgvaE+XQywedFTfZVGr6bI0iAvJLci37969ClMcWj1gPRHMq13paRiNoRfRm8HtkJgzP8WTPQIGeNxYSCV2qnppIACTLkxet8jIH6+evJ579rOhvxYxxd0ot7eDAtdfYQqqCPh";
+        parameters.cameraDirection   = VuforiaLocalizer.CameraDirection.BACK;
+        // Uncomment this line below to use a webcam
+        //parameters.cameraName = hardwareMap.get(WebcamName.class, "Webcam 1");
+        vuforia = ClassFactory.getInstance().createVuforia(parameters);
 
-        // We also indicate which camera we wish to use.
-        vuforiaParameters.cameraName = webcamName;
+        // Create a Vuforia passthrough "virtual camera"
+        vuforiaPassthroughCam = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters, viewportContainerIds[1]);
 
 
-        // Turn off Extended tracking.  Set this true if you want Vuforia to track beyond the target.
-        vuforiaParameters.useExtendedTracking = false;
+        vuforiaPassthroughCam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                // Using GPU acceleration can be particularly helpful when using Vuforia passthrough
+                // mode, because Vuforia often chooses high resolutions (such as 720p) which can be
+                // very CPU-taxing to rotate in software. GPU acceleration has been observed to cause
+                // issues on some devices, though, so if you experience issues you may wish to disable it.
+                vuforiaPassthroughCam.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
+                vuforiaPassthroughCam.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
+                vuforiaPassthroughCam.setPipeline(aprilTagDetectionPipeline);
 
-        //  Instantiate the Vuforia engine
-        vuforia = ClassFactory.getInstance().createVuforia(vuforiaParameters);
 
-        // Load the data sets for the trackable objects. These particular data
-        // sets are stored in the 'assets' part of our application.
+                // We don't get to choose resolution, unfortunately. The width and height parameters
+                // are entirely ignored when using Vuforia passthrough mode. However, they are left
+                // in the method signature to provide interface compatibility with the other types
+                // of cameras.
+                vuforiaPassthroughCam.startStreaming(0,0, OpenCvCameraRotation.UPRIGHT);
+            }
+
+            @Override
+            public void onError(int errorCode)
+            {
+                /*
+                 * This will be called if the camera could not be opened
+                 */
+            }
+        });
+
         targets = this.vuforia.loadTrackablesFromAsset("PowerPlay");
-
 
         // For convenience, gather together all the trackable objects in one easily-iterable collection */
 
         allTrackables.addAll(targets);
 
-        telemetry.addData(">", String.valueOf(allTrackables));
-        telemetry.update();
-
-
-        identifyTarget(0, "Red Audience Wall", -halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, 90);
-        identifyTarget(1, "Red Rear Wall", halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, -90);
-        identifyTarget(2, "Blue Audience Wall", -halfField, oneAndHalfTile, mmTargetHeight, 90, 0, 90);
-        identifyTarget(3, "Blue Rear Wall", halfField, oneAndHalfTile, mmTargetHeight, 90, 0, -90);
-
-
-
-
-
-        // Name and locate each trackable object
+        identifyTarget(0, "Red Audience Wall",   -halfField,  -oneAndHalfTile, mmTargetHeight, 90, 0,  90);
+        identifyTarget(1, "Red Rear Wall",        halfField,  -oneAndHalfTile, mmTargetHeight, 90, 0, -90);
+        identifyTarget(2, "Blue Audience Wall",  -halfField,   oneAndHalfTile, mmTargetHeight, 90, 0,  90);
+        identifyTarget(3, "Blue Rear Wall",       halfField,   oneAndHalfTile, mmTargetHeight, 90, 0, -90);
 
 
         final float CAMERA_FORWARD_DISPLACEMENT = 9.5f * mmPerInch;   // eg: Enter the forward distance from the center of the robot to the camera lens
@@ -254,8 +279,10 @@ public class TTAuto extends LinearOpMode {
 
         /**  Let all the trackable listeners know where the camera is.  */
         for (VuforiaTrackable trackable : allTrackables) {
-            ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(vuforiaParameters.cameraName, cameraLocationOnRobot);
+            ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(parameters.cameraName, cameraLocationOnRobot);
         }
+
+        targets.activate();
 
         robot.init(hardwareMap);
         // Ensure the robot it stationary, then reset the encoders and calibrate the gyro.
@@ -276,75 +303,42 @@ public class TTAuto extends LinearOpMode {
         telemetry.update();
 
 
-
-        int cameraMonitorViewIdAT = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewIdAT", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewIdAT);
-        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
-
-        camera.setPipeline(aprilTagDetectionPipeline);
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
-            @Override
-            public void onOpened()
-            {
-                camera.startStreaming(800,448, OpenCvCameraRotation.UPRIGHT);
-            }
-
-            @Override
-            public void onError(int errorCode)
-            {
-
-            }
-        });
-
-        telemetry.setMsTransmissionInterval(50);
-
-            ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
-
-            if(currentDetections.size() != 0) {
-                boolean tagFound = false;
-
-                for (AprilTagDetection tag : currentDetections) {
-                    if (tag.id == LEFT || tag.id == MIDDLE || tag.id == RIGHT) {
-                        tagOfInterest = tag;
-                        tagFound = true;
-                        break;
-                    }
-                }
-
-                if (tagFound) {
-                    telemetry.addLine("Tag of interest is in sight!\n\nLocation data:");
-                    telemetry.update();
-
-                    tagToTelemetry(tagOfInterest);
-                    parkingPosition = tagOfInterest.id;
-                } else {
-                    telemetry.addLine("Don't see tag of interest :(");
-                    telemetry.update();
-                }
-            }
-
+//
+//        int cameraMonitorViewIdAT = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewIdAT", "id", hardwareMap.appContext.getPackageName());
+//        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewIdAT);
+//        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
+//
+//        camera.setPipeline(aprilTagDetectionPipeline);
+//
+//
 
 
 
         waitForStart();
 
+        findCone();
 
-        robot.cameraServo.setPosition(.8); // turn  camera
+        robot.cameraServo.setPosition(.75); // turn  camera
         robot.pickup.setPosition(0);
+
         sleep(250);
         moveSlide(1, 38, 1);
-        sleep(250);
+        sleep(500);
         ArrayList<String> targetResults = findTarget();
         sleep(1000);
+
         if (targetResults.isEmpty()) {
             telemetry.addLine("Couldn't Find Photo, Looking to the right");
             telemetry.update();
+
             robot.cameraServo.setPosition(.3); // Turn right
             sleep(1500);
+
             targetResults = findTarget();
             sleep(1000);
+
             String picture = targetResults.get(0);
+
             runAuto(picture);
 
             if (targetResults.isEmpty()) {
@@ -868,5 +862,38 @@ public class TTAuto extends LinearOpMode {
     {
         telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
 
+    }
+
+    void findCone() {
+
+
+        telemetry.setMsTransmissionInterval(50);
+
+
+        ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
+
+
+        if(currentDetections.size() != 0) {
+            boolean tagFound = false;
+
+            for (AprilTagDetection tag : currentDetections) {
+                if (tag.id == LEFT || tag.id == MIDDLE || tag.id == RIGHT) {
+                    tagOfInterest = tag;
+                    tagFound = true;
+                    break;
+                }
+            }
+
+            if (tagFound) {
+                telemetry.addLine("Tag of interest is in sight!\n\nLocation data:");
+                telemetry.update();
+
+                tagToTelemetry(tagOfInterest);
+                parkingPosition = tagOfInterest.id;
+            } else {
+                telemetry.addLine("Don't see tag of interest :(");
+                telemetry.update();
+            }
+        }
     }
 }
