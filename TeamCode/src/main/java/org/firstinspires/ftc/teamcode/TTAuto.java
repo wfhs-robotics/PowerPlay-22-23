@@ -99,7 +99,7 @@ import java.util.List;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name = "TTAuto", group = "Pushbot")
+@Autonomous(name = "Normal", group = "Pushbot")
 public class TTAuto extends LinearOpMode {
 
 
@@ -166,7 +166,7 @@ public class TTAuto extends LinearOpMode {
             "3 Panel"
     };
 
-    public int parkingPosition;
+    public int parkingPosition = 0;
 
     private boolean targetVisible = false;
 
@@ -204,7 +204,7 @@ public class TTAuto extends LinearOpMode {
         imu.initialize(parametersIMU);
 
 
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, DEGREES);
 
         webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
 
@@ -318,7 +318,7 @@ public class TTAuto extends LinearOpMode {
 
         findCone();
 
-        robot.cameraServo.setPosition(.75); // turn  camera
+        robot.cameraServo.setPosition(.74); // turn  camera
         robot.pickup.setPosition(0);
 
         sleep(250);
@@ -337,16 +337,34 @@ public class TTAuto extends LinearOpMode {
             targetResults = findTarget();
             sleep(1000);
 
-            String picture = targetResults.get(0);
+            if(targetResults.size() != 0) {
+                String picture = targetResults.get(0);
+                runAuto(picture);
 
-            runAuto(picture);
+            } else { //if it doesn't see picture
+                if(parkingPosition == 0) { //blind
 
-            if (targetResults.isEmpty()) {
-                telemetry.addLine("Im lost. Parking now");
-                telemetry.update();
-                sleep(10000);
+                    gyroDrive(1, 30, 0); // park in 2 if it's blind
 
+                } else { //It doesn't see the picture but sees the cone
+
+                    gyroDrive(1, -24, 0);
+                    if(parkingPosition == 1) {
+                        gyroStrafe(1, -24, 0);
+                        telemetry.addLine("Parked in position 1");
+                        telemetry.update();
+                    } else if(parkingPosition == 2) {
+                        telemetry.addLine("Parked in position 2");
+                        telemetry.update();
+                    } else if(parkingPosition == 3) {
+                        gyroStrafe(1, 24,0);
+                        telemetry.addLine("Parking in position 3");
+                        telemetry.update();
+
+                    }
+                }
             }
+
         } else { // if it finds something right away
             telemetry.addLine("Found where I am, beginning to stack.");
             String picture = targetResults.get(0);
@@ -874,6 +892,8 @@ public class TTAuto extends LinearOpMode {
 
 
         if(currentDetections.size() != 0) {
+            telemetry.addLine("In if");
+            telemetry.update();
             boolean tagFound = false;
 
             for (AprilTagDetection tag : currentDetections) {
