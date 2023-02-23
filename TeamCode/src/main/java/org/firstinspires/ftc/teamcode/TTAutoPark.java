@@ -319,19 +319,27 @@ public class TTAutoPark extends LinearOpMode {
         findCone();
 
 
-        gyroDrive(1, -24, 0);
+        gyroStrafe(.5, 2, 0);
+        gyroHold(.5, 0, 1);
+        gyroDrive(0.01, -26, 0);
+        gyroDrive(0.01, 3, 0);
+        gyroHold(.5, 0, 1);
         if(parkingPosition == 1) {
-            gyroStrafe(1, -24, 0);
+            gyroStrafe(.5, -25, 0);
             telemetry.addLine("Parked in position 1");
             telemetry.update();
         } else if(parkingPosition == 2) {
+            gyroStrafe(0.5, 2, 0);
+            gyroHold(0.5, 0,1);
             telemetry.addLine("Parked in position 2");
             telemetry.update();
         } else if(parkingPosition == 3) {
-            gyroStrafe(1, 24, 0);
+            gyroStrafe(.5, 36,0);
             telemetry.addLine("Parking in position 3");
             telemetry.update();
+
         }
+        gyroHold(.5,0,1);
 
 
 

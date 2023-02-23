@@ -287,6 +287,18 @@ public class TTOpMode extends LinearOpMode {
             {
                 sean = false;
             }
+            if(gamepad1.dpad_right) {
+                robot.leftDrive.setPower(-.7);
+                robot.rightDrive.setPower(.7);
+                robot.leftForwardDrive.setPower(.7);
+                robot.rightForwardDrive.setPower(-.7);
+            }
+            if(gamepad1.dpad_left) {
+                robot.leftDrive.setPower(.7);
+                robot.rightDrive.setPower(-.7);
+                robot.leftForwardDrive.setPower(-.7);
+                robot.rightForwardDrive.setPower(.7);
+            }
 
             if(sean) {
                 robot.leftDrive.setPower(robot.leftDrive.getPower() * 0.2);

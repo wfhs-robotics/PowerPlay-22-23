@@ -331,37 +331,47 @@ public class TTAuto extends LinearOpMode {
             telemetry.addLine("Couldn't Find Photo, Looking to the right");
             telemetry.update();
 
-            robot.cameraServo.setPosition(.3); // Turn right
+            robot.cameraServo.setPosition(.28); // Turn right
             sleep(1500);
 
             targetResults = findTarget();
             sleep(1000);
 
-            if(targetResults.size() != 0) {
+            if(!targetResults.isEmpty()) {
                 String picture = targetResults.get(0);
                 runAuto(picture);
 
             } else { //if it doesn't see picture
                 if(parkingPosition == 0) { //blind
-
-                    gyroDrive(1, 30, 0); // park in 2 if it's blind
+                    gyroStrafe(.5, 2, 0);
+                    gyroDrive(0.01, -26, 0); // park in 2 if it's blind
+                    gyroDrive(0.01, 3, 0);
+                    gyroHold(.5, 0, 1);
+                    gyroStrafe(0.5,2, 0);
+                    gyroHold(.5, 0, 1);
 
                 } else { //It doesn't see the picture but sees the cone
-
-                    gyroDrive(1, -24, 0);
+                    gyroStrafe(.5, 2, 0);
+                    gyroHold(.5, 0, 1);
+                    gyroDrive(0.01, -26, 0);
+                    gyroDrive(0.01, 3, 0);
+                    gyroHold(.5, 0, 1);
                     if(parkingPosition == 1) {
-                        gyroStrafe(1, -24, 0);
+                        gyroStrafe(.5, -25, 0);
                         telemetry.addLine("Parked in position 1");
                         telemetry.update();
                     } else if(parkingPosition == 2) {
+                        gyroStrafe(0.5, 2, 0);
+                        gyroHold(0.5, 0,1);
                         telemetry.addLine("Parked in position 2");
                         telemetry.update();
                     } else if(parkingPosition == 3) {
-                        gyroStrafe(1, 24,0);
+                        gyroStrafe(.5, 28,0);
                         telemetry.addLine("Parking in position 3");
                         telemetry.update();
 
                     }
+                    gyroHold(.5,0,1);
                 }
             }
 
@@ -376,7 +386,7 @@ public class TTAuto extends LinearOpMode {
 
     public void runAuto(String picture) {
         if (picture == "Red Audience Wall" || picture == "Blue Rear Wall") {
-            gyroStrafe(.5, -21, 0); //strafe right
+            gyroStrafe(.5, -20, 0); //strafe right
             gyroHold(1, 0, 1);
             gyroDrive(0.01, -23, 0); //negative is forward
             gyroTurn(0.3, -37);
@@ -397,13 +407,13 @@ public class TTAuto extends LinearOpMode {
 
                 telemetry.addLine("Parked in position 1");
             }
-            if(parkingPosition == 2) {
+            else if(parkingPosition == 2) {
                 gyroDrive(.5, 18, -1);
                 gyroTurn(.5,0);
                 gyroStrafe(.2, 27, 0); //strafe left
                 telemetry.addLine("Parked in position 2");
             }
-            if(parkingPosition == 3) {
+           else if(parkingPosition == 3) {
                 gyroDrive(.5, 18, -1);
                 gyroTurn(.5, -1);
                 gyroStrafe(.2, 60, 0); //strafe left
@@ -438,12 +448,12 @@ public class TTAuto extends LinearOpMode {
                 gyroStrafe(.5, -60, 0);
                 telemetry.addLine("Parked in position 1");
             }
-            if(parkingPosition == 2) {
+            else if(parkingPosition == 2) {
 
                 gyroStrafe(.5, -30, 0);
                 telemetry.addLine("Parked in position 2");
             }
-            if(parkingPosition == 3) {
+            else if(parkingPosition == 3) {
 
                 telemetry.addLine("Parked in position 3");
 
@@ -539,12 +549,7 @@ public class TTAuto extends LinearOpMode {
 
 
                 // Display drive status for the driver.
-                telemetry.addData("Err/St",  "%5.1f/%5.1f",  error, steer);
-                telemetry.addData("Target",  "%7d:%7d",      newLeftTarget,  newRightTarget);
-                telemetry.addData("Actual",  "%7d:%7d",      robot.leftDrive.getCurrentPosition(),
-                        robot.rightDrive.getCurrentPosition());
-                telemetry.addData("Speed",   "%5.2f:%5.2f",  leftSpeed, rightSpeed);
-                telemetry.update();
+
 
 
             }
